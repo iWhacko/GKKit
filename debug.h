@@ -42,7 +42,7 @@
         #define Q(x) Q_(x)
 
 // TODO: Consolidate all of these NSLog methods to eliminate boilerplate/repeat info
-        #define DLog(format, ...)       NSLog(@"%s:%s;%@;", Q(DLOG_PREFIX), [NSString stringWithFormat:[@" " stringByAppendingString:format], ## __VA_ARGS__ ])
+        #define DLog(format, ...)       NSLog(@"%s:%@;", Q(DLOG_PREFIX), [NSString stringWithFormat:[@" " stringByAppendingString:format], ## __VA_ARGS__ ])
         #define DLogObject(Object)      NSLog(@"%s:%s;%@;", Q(DLOG_PREFIX), #Object , Object)
         #define DLogNSObject(NSObject)  NSLog(@"%s:%s;%@;", Q(DLOG_PREFIX), #NSObject , NSObject)
         #define DLogClass(Class)        NSLog(@"%s:%s;%@;", Q(DLOG_PREFIX), #Class, [NSString stringWithUTF8String:(class_getName(Class))])
@@ -55,11 +55,12 @@
         #define DLogUIView(Object)      UILogViewHierarchy(Object)
         #define DLogFunc()              NSLog(@"%s:%s;%d;", Q(DLOG_PREFIX), __PRETTY_FUNCTION__, __LINE__)
 
-        #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+        #if IPHONE_ONLY
             #define DLogCGRect(CGRect)  NSLog(@"%s:%s;%@;", Q(DLOG_PREFIX), #CGRect, NSStringFromCGRect(CGRect))
             #define DLogCGSize(CGSize)  NSLog(@"%s:%s;%@;", Q(DLOG_PREFIX), #CGSize, NSStringFromCGSize(CGSize))
             #define DLogCGPoint(CGPoint)    NSLog(@"%s:%s;%@;", Q(DLOG_PREFIX), #CGPoint, NSStringFromCGPoint(CGPoint))
-        #elif TARGET_OS_MAC 
+        #endif
+        #if MAC_ONLY 
             #define DLogCGRect(CGRect)  NSLog(@"%s:%s;%@;", Q(DLOG_PREFIX), #CGRect, NSStringFromRect(NSRectFromCGRect(CGRect)))
         #endif
 
@@ -71,7 +72,7 @@
         #define DEndMod(key, mod)       NSTimeInterval __dInterval ## key = [__dTime ## key timeIntervalSinceNow]; \
                                         NSLog(@"%s:%s;%f;", Q(DLOG_PREFIX), #key, (-(__dInterval ## key))-mod)
 #pragma mark - Thread Logging
-        #define DLogThread()            NSLog(@"%s:%s;%d:main=%s;", Q(DLOG_PREFIX), __PRETTY_FUNCTION__, __LINE__, ([NSThread isMainThread]?"YES":"NO")
+        #define DLogThread()            NSLog(@"%s:%s;%d:main=%s;", Q(DLOG_PREFIX), __PRETTY_FUNCTION__, __LINE__, ([NSThread isMainThread]?"YES":"NO"))
         
 #pragma mark - Class Method Logging
         
@@ -183,5 +184,6 @@
         #define DStart(obj)
         #define DEnd(obj)
         #define DEndMod(obj, object)
+        #define DLogThread()
     #endif
 #endif
