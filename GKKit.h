@@ -11,4 +11,7 @@
     #import "NSObject+GKAdditions.h"
     #import "NSString+GKAdditions.h"
     #import "GKView+GKAdditions.h"
+    #if IPHONE_ONLY
+        #import "GKSearchController.h"
+    #endif
 #endif
