@@ -18,11 +18,11 @@
     #define $(class) objc_getClass(#class)
     #define OBJC_ARC __has_feature(objc_arc)
     #if OBJC_ARC
-        #define STRONG strong
-        #define WEAK weak
+        #define retain strong
+        #define assign weak
     #else
-        #define STRONG retain
-        #define WEAK assign
+        #define strong retain
+        #define weak assign
     #endif
 
     #if TARGET_OS_MAC && !(TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR)
