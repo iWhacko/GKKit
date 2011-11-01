@@ -4,37 +4,48 @@
 //
 //  Created by Gaurav Khanna on 7/14/10.
 //
-
-#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+//  Usage: 
+//      GKSearchController *aSearchController = [[GKSearchController alloc] initWithSearchDisplayController:mySearchDisplayController];
+//      self.searchController = aSearchController;
+//  
+//  
+//  Notes: 
+//     (by default)
+//      - instance delegate is assigned as the delegate of the UISearchDisplayController received.
+//      - Controlled view is set to delegates view (if exists)
+//      - UISearchDisplayController delegate is set to instance
+//  
 
 #import <UIKit/UIKit.h>
-#import "NSObject+GKAdditions.h"
 #import "common.h"
+#import "NSObject+GKAdditions.h"
 
-@interface GKSearchController : NSObject <UISearchDisplayDelegate, UISearchBarDelegate> {
-@private
-    UIActivityIndicatorView *_activityView;
-    UIView *_searchLoadingView;
-    UISearchDisplayController *_controller;
-    UIView *_controlledView;
-    id _delegate;
-}
+@class GKSearchController;
 
-@property (nonatomic, STRONG) id delegate;
-@property (nonatomic, STRONG) UISearchDisplayController *controller;
-@property (nonatomic, STRONG) UIView *controlledView;
+typedef enum {
+    GKSearchDisplayStateSearch,
+    GKSearchDisplayStateLoading,
+} GKSearchDisplayState;
 
-- (id)initWithSearchDisplayController:(UISearchDisplayController *)controller controlledView:(UIView *)view;
-- (void)readyToDisplayResults;
-- (void)search:(NSString *)searchText fromTableView:(UITableView *)tableView forIndexPath:(NSIndexPath *)indexPath animated:(BOOL)animated;
-
-@end
-
-@protocol GKSearchControllerDelegate <NSObject>
-@optional
+@protocol GKSearchControllerDelegate
 
 - (void)searchController:(GKSearchController *)controller shouldStartSearch:(NSString *)searchText;
 
 @end
 
-#endif
+
+@interface GKSearchController : NSObject <UISearchDisplayDelegate, UISearchBarDelegate> {
+@private
+    UIActivityIndicatorView *_activityView;
+    UIView *_searchLoadingView;
+}
+
+@property (nonatomic, weak) id<GKSearchControllerDelegate> delegate;
+@property (nonatomic, weak) UISearchDisplayController *searchDisplayController;
+@property (nonatomic, weak) UIView *view;
+
+- (id)initWithSearchDisplayController:(UISearchDisplayController *)controller;
+- (void)readyToDisplayResults;
+- (void)search:(NSString *)searchText fromTableView:(UITableView *)tableView forIndexPath:(NSIndexPath *)indexPath animated:(BOOL)animated;
+
+@end
