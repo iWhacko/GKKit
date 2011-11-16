@@ -15,6 +15,8 @@
 @synthesize view;
 @synthesize searchDisplayController;
 
+#pragma mark - Instance Setup Methods
+
 - (id)initWithSearchDisplayController:(UISearchDisplayController *)controller {
     self = [super init];
     if (self) {
@@ -77,13 +79,56 @@
 
 #pragma mark - UISearchDisplayController Delegate Methods
 
-// called when table is shown/hidden
 - (void)searchDisplayController:(UISearchDisplayController *)controller willShowSearchResultsTableView:(UITableView *)tableView {
     tableView.hidden = YES;
     [_searchLoadingView setFrame:( CGRectEqualToRect(tableView.frame, CGRectZero ) ? _searchLoadingView.frame : tableView.frame)];
     [self setSearchLoadingState:GKSearchDisplayStateSearch];
     [self.view addSubview:_searchLoadingView];
 }
+
+#ifdef DEBUG
+- (void)searchDisplayController:(UISearchDisplayController *)controller didShowSearchResultsTableView:(UITableView *)tableView {
+    
+}
+
+#pragma mark Begin / End Search
+
+- (void)searchDisplayControllerWillBeginSearch:(UISearchDisplayController *)controller {
+    
+}
+
+- (void)searchDisplayControllerDidBeginSearch:(UISearchDisplayController *)controller {
+    
+}
+
+- (void)searchDisplayControllerWillEndSearch:(UISearchDisplayController *)controller {
+    
+}
+
+- (void)searchDisplayControllerDidEndSearch:(UISearchDisplayController *)controller {
+    
+}
+
+#pragma mark Load / Unload Table View
+
+- (void)searchDisplayController:(UISearchDisplayController *)controller didLoadSearchResultsTableView:(UITableView *)tableView {
+    
+}
+
+- (void)searchDisplayController:(UISearchDisplayController *)controller willUnloadSearchResultsTableView:(UITableView *)tableView {
+    
+}
+
+#pragma mark Hide Table view
+
+- (void)searchDisplayController:(UISearchDisplayController *)controller willHideSearchResultsTableView:(UITableView *)tableView {
+    
+}
+
+- (void)searchDisplayController:(UISearchDisplayController *)controller didHideSearchResultsTableView:(UITableView *)tableView {
+    
+}
+#endif
 
 // returns NO to not cause reload of table with no results
 - (BOOL)searchDisplayController:(UISearchDisplayController *)controller shouldReloadTableForSearchString:(NSString *)searchString {
