@@ -28,7 +28,7 @@
         _activityView.hidesWhenStopped = YES;
         [_activityView stopAnimating];
         [_searchLoadingView addSubview:_activityView];
-        
+
         id controllerDelegate = (id<GKSearchControllerDelegate>)controller.delegate;
         if (controllerDelegate) {
             self.delegate = controllerDelegate;
@@ -148,7 +148,7 @@
 
 - (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar {
     if(_searchLoadingView.superview) {
-        [_searchLoadingView removeFromSuperview]; 
+        [_searchLoadingView removeFromSuperview];
         [NSObject scheduleRunAfterDelay:1.0 forBlock:^{
             self.searchDisplayController.searchResultsTableView.hidden = NO;
         }];

@@ -1,6 +1,6 @@
 #ifdef __OBJC__
-    #import "debug.h"
     #import "common.h"
+    #import "debug.h"
     #import "singleton.h"
     #import "GKEditorProtocol.h"
     #import "GKGradientLayer.h"
