@@ -41,6 +41,12 @@
         #define Q_(x) #x
         #define Q(x) Q_(x)
 
+#pragma mark - NSLogger shortcuts
+
+        #define LOG_NETWORK(level, ...)    LogMessageF(__FILE__,__LINE__,__FUNCTION__,@"network",level,__VA_ARGS__)
+        #define LOG_GENERAL(level, ...)    LogMessageF(__FILE__,__LINE__,__FUNCTION__,@"general",level,__VA_ARGS__)
+        #define LOG_GRAPHICS(level, ...)   LogMessageF(__FILE__,__LINE__,__FUNCTION__,@"graphics",level,__VA_ARGS__)
+
 // TODO: Consolidate all of these NSLog methods to eliminate boilerplate/repeat info
         #define DLog(format, ...)       NSLog(@"%s:%@;", Q(DLOG_PREFIX), [NSString stringWithFormat:[@" " stringByAppendingString:format], ## __VA_ARGS__ ])
         #define DLogObject(Object)      NSLog(@"%s:%s;%@;", Q(DLOG_PREFIX), #Object , Object)
@@ -164,26 +170,31 @@
                 return retVar; \
             }
     #else
-        #define DLog(format, ...)
-        #define DLogObject(object)
-        #define DLogClass(object)
-        #define DLogSEL(object)
-        #define DLogRetain(object)
-        #define DLogCFRetain(object)
-        #define DLogINT(object)
-        #define DLogBOOL(object)
-        #define DLogUIView(object)
-        #define DLogCGRect(object)
-        #define DLogFunc()
-        #define DLogMethod0(object, object1)
-        #define DLogMethod1(object, object1)
-        #define DLogMethod2(object, object1, object2)
-        #define DLogMethod3(object, object1, object2, object3)
-        #define DLogvoid()
-        #define DLogid()
-        #define DStart(obj)
-        #define DEnd(obj)
-        #define DEndMod(obj, object)
-        #define DLogThread()
+
+        #define LOG_NETWORK(...)    do{}while(0)
+        #define LOG_GENERAL(...)    do{}while(0)
+        #define LOG_GRAPHICS(...)   do{}while(0)
+
+        #define DLog(format, ...) do{}while(0)
+        #define DLogObject(object) do{}while(0)
+        #define DLogClass(object) do{}while(0)
+        #define DLogSEL(object) do{}while(0) 
+        #define DLogRetain(object) do{}while(0)
+        #define DLogCFRetain(object) do{}while(0)
+        #define DLogINT(object) do{}while(0)
+        #define DLogBOOL(object) do{}while(0)
+        #define DLogUIView(object) do{}while(0)
+        #define DLogCGRect(object) do{}while(0)
+        #define DLogFunc() do{}while(0)
+        #define DLogMethod0(object, object1) do{}while(0)
+        #define DLogMethod1(object, object1) do{}while(0)
+        #define DLogMethod2(object, object1, object2) do{}while(0)
+        #define DLogMethod3(object, object1, object2, object3) do{}while(0)
+        #define DLogvoid() do{}while(0)
+        #define DLogid() do{}while(0)
+        #define DStart(obj) do{}while(0)
+        #define DEnd(obj) do{}while(0)
+        #define DEndMod(obj, object) do{}while(0)
+        #define DLogThread() do{}while(0)
     #endif
 #endif

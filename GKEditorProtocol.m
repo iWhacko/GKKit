@@ -31,9 +31,13 @@ NSString * const GKEditorEndEditingNotification = @"GKEditorEndEditingNotificati
 
     if (!class_respondsToSelector(class_getSuperclass([self class]), @selector(setEditing:animated:)))
         return;
-
+    //TODO:
     // Finds super at runtime to avoid compiler issues with using super in a category for NSObject
-    NSObjectMessageSendSuper( self, setEditing:animated:, editing, [notification.object boolValue]);
+    //NSObjectMessageSendSuper(self, @selector(setEditing:animated:), editing, [notification.object boolValue]);
+    //struct objc_super super1;
+    //super1.receiver = (__bridge_retained void*)self;
+    //super1.super_class = class_getSuperclass([self class]);
+    //objc_msgSendSuper(&(struct objc_super){(__bridge_retained void*)self, class_getSuperclass([self class])}, @selector(setEditing:animated:), editing, [notification.object boolValue]);
 
     if (![self conformsToProtocol:@protocol(GKEditorProtocol)])
         return;

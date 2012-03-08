@@ -6,7 +6,7 @@
 //  Copyright 2011 GK Apps. All rights reserved.
 //
 
-
+#import "GKView+GKAdditions.h"
 
 @interface GKCoverFlowView : GKView {
 @private

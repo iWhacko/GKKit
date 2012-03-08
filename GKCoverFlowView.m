@@ -35,7 +35,7 @@
 
 #pragma mark - View Events
 
-- (void)willMoveToWindow:(UIWindow *)newWindow {
+- (void)willMoveToWindow:(GKWindow *)newWindow {
 
 }
 
@@ -52,8 +52,5 @@
 
 #pragma mark - Memory Management
 #if !OBJC_ARC
-- (void)dealloc {
-    [super dealloc];
-}
 #endif
 @end

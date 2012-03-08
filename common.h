@@ -4,12 +4,14 @@
     #import <objc/runtime.h>
 
     // TODO: Test & Fix
-    #define NSObjectMessageSendSuper(obj, msg, ...) \
+    //#define NSObjectMessageSendSuper(obj, msg, ...) \
         ^{ \
-            return (id)objc_msgSendSuper(&(struct objc_super){obj, class_getSuperclass([obj class])}, @selector(msg), ## __VA_ARGS__); \
+            return (id)objc_msgSendSuper(&(struct objc_super){obj, class_getSuperclass([obj class])}, msg, ## __VA_ARGS__); \
         }()
+    //#define NSObjectMessageSendSuper(obj, msg, ...) \
+        return (id)objc_msgSendSuper(&(struct objc_super){obj, class_getSuperclass([obj class])}, msg, ## __VA_ARGS__);
 
-    #define NSObjectMessageSendSuperSuper(obj, msg, ...) \
+    //#define NSObjectMessageSendSuperSuper(obj, msg, ...) \
         ^{ \
             return (id)objc_msgSendSuper(&(struct objc_super){obj, class_getSuperclass(class_getSuperclass([obj class]))}, @selector(msg), ## __VA_ARGS__); \
         }()
@@ -18,8 +20,8 @@
     #define $(class) objc_getClass(#class)
     #define OBJC_ARC __has_feature(objc_arc)
     #if OBJC_ARC
-        #define retain strong
-        #define assign weak
+        //#define retain strong
+        //#define assign weak
     #else
         #define strong retain
         #define weak assign
@@ -32,33 +34,20 @@
     #endif
 
     #ifdef MAC_ONLY
-        #ifndef NSApp
-            #define NSApp [NSApplication sharedApplication]
-        #endif
-        #ifndef NSAppDelegate
-            #define NSAppDelegate (id)[[NSApplication sharedApplication] delegate]
-        #endif
         #define GKApp [NSApplication sharedApplication]
-        #ifndef GKView
-            #define GKView NSView
-        #endif
-        #ifndef GKRect
-            #define GKRect NSRect
-        #endif
+        #define GKAppDelegate (id)[[NSApplication sharedApplication] delegate]
+        #define GKApp [NSApplication sharedApplication]
+        #define GKView NSView
+        #define GKRect NSRect
+        #define GKWindow NSWindow
+
     #elif IPHONE_ONLY
         #import <QuartzCore/QuartzCore.h>
-        #ifndef UIApp
-            #define UIApp [UIApplication sharedApplication]
-        #endif
-        #ifndef UIAppDelegate
-            #define UIAppDelegate [UIApp delegate]
-        #endif
-        #ifndef GKView
-            #define GKView UIView
-        #endif
-        #ifndef GKRect
-            #define GKRect CGRect
-        #endif
+        #define GKApp [UIApplication sharedApplication]
+        #define GKAppDelegate [UIApp delegate]
+        #define GKView UIView
+        #define GKRect CGRect
+        #define GKWindow UIWindow
 
         #define UIViewFrameChangeValue( view, key, value) \
             CGRect view ## Frame = view.frame; \
