@@ -6,6 +6,8 @@
 //  Copyright 2011 GK Apps. All rights reserved.
 //
 
+#if IPHONE_ONLY
+
 #import "GKCoverFlowView.h"
 
 @implementation GKCoverFlowView
@@ -57,3 +59,5 @@
 }
 #endif
 @end
+
+#endif

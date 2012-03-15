@@ -16,6 +16,8 @@
 //      - UISearchDisplayController delegate is set to instance
 //  
 
+#if IPHONE_ONLY
+
 #import <UIKit/UIKit.h>
 #import "common.h"
 #import "NSObject+GKAdditions.h"
@@ -49,3 +51,5 @@ typedef enum {
 - (void)search:(NSString *)searchText fromTableView:(UITableView *)tableView forIndexPath:(NSIndexPath *)indexPath animated:(BOOL)animated;
 
 @end
+
+#endif

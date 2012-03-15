@@ -17,13 +17,13 @@
     #define NSDef [NSUserDefaults standardUserDefaults]
     #define $(class) objc_getClass(#class)
     #define OBJC_ARC __has_feature(objc_arc)
-    #if OBJC_ARC
+    /*#if OBJC_ARC
         #define retain strong
         #define assign weak
     #else
         #define strong retain
         #define weak assign
-    #endif
+    #endif*/
 
     #if TARGET_OS_MAC && !(TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR)
         #define MAC_ONLY 1
