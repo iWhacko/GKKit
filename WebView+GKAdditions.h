@@ -7,8 +7,8 @@
 
 #import <WebKit/WebKit.h>
 #import "NSObject+GKAdditions.h"
-#import "NSEvent+Additions.h"
-#import "GKView+GKAdditions.h"
+#import "NSEvent+GKAdditions.h"
+#import "View+GKAdditions.h"
 
 //#define TEST
 

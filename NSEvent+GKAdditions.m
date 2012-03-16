@@ -5,7 +5,7 @@
 //  Created by Gaurav Khanna on 8/17/10.
 //
 
-#import "NSEvent+Additions.h"
+#import "NSEvent+GKAdditions.h"
 
 @implementation NSEvent (Additions)
 
