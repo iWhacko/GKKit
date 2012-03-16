@@ -37,16 +37,16 @@
         #define GKApp [NSApplication sharedApplication]
         #define GKAppDelegate (id)[[NSApplication sharedApplication] delegate]
         #define GKApp [NSApplication sharedApplication]
-        #define GKView NSView
         #define GKRect NSRect
+        #define GKView NSView
         #define GKWindow NSWindow
 
     #elif IPHONE_ONLY
         #import <QuartzCore/QuartzCore.h>
         #define GKApp [UIApplication sharedApplication]
         #define GKAppDelegate [UIApp delegate]
-        #define GKView UIView
         #define GKRect CGRect
+        #define GKView UIView
         #define GKWindow UIWindow
 
         #define UIViewFrameChangeValue( view, key, value) \

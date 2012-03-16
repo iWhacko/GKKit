@@ -9,6 +9,7 @@
 #import "common.h"
 
 #if MAC_ONLY
+#define GKView NSView
 
 @interface NSView (GKAdditions)
 
@@ -19,6 +20,7 @@
 @end
 
 #elif IPHONE_ONLY
+#define GKView UIView
 
 @interface UIView (GKAdditions)
 

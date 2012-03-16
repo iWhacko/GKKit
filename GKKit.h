@@ -10,7 +10,7 @@
     #import "NSDate+GKAdditions.h"
     #import "NSObject+GKAdditions.h"
     #import "NSString+GKAdditions.h"
-    #import "GKView+GKAdditions.h"
+    #import "View+GKAdditions.h"
     #if IPHONE_ONLY
         #import "GKSearchController.h"
     #endif
