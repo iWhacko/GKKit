@@ -58,6 +58,7 @@
         #define DLogINT(int)            NSLog(@"%s:%s;%i;", Q(DLOG_PREFIX), #int, int)
         #define DLogFLOAT(float)        NSLog(@"%s:%s;%f;", Q(DLOG_PREFIX), #float, float)
         #define DLogBOOL(BOOL)          NSLog(@"%s:%s;%s;", Q(DLOG_PREFIX), #BOOL, (BOOL ? "YES" : "NO"))
+        #define DLogTRUE(BOOL)          if (BOOL) { DLogBOOL(BOOL);}do{}while(0)
         #define DLogUIView(Object)      UILogViewHierarchy(Object)
         #define DLogFunc()              NSLog(@"%s:%s;%d;", Q(DLOG_PREFIX), __PRETTY_FUNCTION__, __LINE__)
 
@@ -85,7 +86,9 @@
         #define DLogvoid()
         #define DLogid(Object)      NSLog(@"%s:%s:%@;", Q(DLOG_PREFIX), #Object , Object)
         #define DLogdouble(double)  NSLog(@"%s:%s:%f;", Q(DLOG_PREFIX), #double, double)
-        #define DLogint(int)        NSLog(@"%s:%s:%i;", Q(DLOG_PREFIX), #int, int)
+        #define DLogint(Int)        NSLog(@"%s:%s:%i;", Q(DLOG_PREFIX), #Int, Int)
+        #define DLoglong(Long)      NSLog(@"%s:%s:%ld;", Q(DLOG_PREFIX), #Long, (long)Long)
+        #define DLoglonglong(Long)  NSLog(@"%s:%s:%lld;", Q(DLOG_PREFIX), #Long, Long)
 
         #define DLogMethodv0(selName) \
             - (void)selName { \
@@ -196,5 +199,6 @@
         #define DEnd(obj) do{}while(0)
         #define DEndMod(obj, object) do{}while(0)
         #define DLogThread() do{}while(0)
+        #define DLoglong() do{}while(0)
     #endif
 #endif

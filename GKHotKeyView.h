@@ -14,10 +14,9 @@
 //      GKHotKeyView *ahkView = [[GKHotKeyView alloc] initHotKeyViewWithCharacter:@"j" modifierSrings:@"cmd", @"alt", nil];
 
 #import <Cocoa/Cocoa.h>
-#import "GKHotKeyCenter.h"
 #import "GKHotKey.h"
 
-@class GKHotKeyCenter, GKHotKey;
+@class GKHotKey, GKHotKeyCenter;
 
 @interface GKHotKeyView : NSView {
 @private

@@ -19,14 +19,13 @@
         _hotkey = nil;
         _hasFocus = NO;
         
-        [GKHotKeyCenter sharedCenter];
+        [self addObserver:self forKeyPath:@"hotkey" options:NSKeyValueObservingOptionNew context:NULL];
         
         NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
-        [center addObserver:self selector:@selector(playPauseKeyNotification) name:MediaKeyPlayPauseNotification object:nil];
-        [center addObserver:self selector:@selector(nextKeyNotification) name:MediaKeyNextNotification object:nil];
-        [center addObserver:self selector:@selector(previousKeyNotification) name:MediaKeyPreviousNotification object:nil];
-        
-        [self addObserver:self forKeyPath:@"hotkey" options:NSKeyValueObservingOptionNew context:NULL];
+        [center addObserver:self selector:@selector(keyDownNotification:) name:@"KeyboardKeyDownNotification" object:nil];
+        //[center addObserver:self selector:@selector(playPauseKeyNotification) name:MediaKeyPlayPauseNotification object:nil];
+        //[center addObserver:self selector:@selector(nextKeyNotification) name:MediaKeyNextNotification object:nil];
+        //[center addObserver:self selector:@selector(previousKeyNotification) name:MediaKeyPreviousNotification object:nil];
     }
     return self;
 }
@@ -38,107 +37,34 @@
     return self;
 }
 
-- (void)dealloc {
-    [self removeObserver:self forKeyPath:@"hotkey"];
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
-}
-
-/*
- *  Watch change of "hotkey" property to redraw
- */
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
     if ([keyPath isEqualToString:@"hotkey"]) {
-        [self becomeFirstResponder];
+        [self setNeedsDisplay:YES];
     } else {
         [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
     }
 }
 
-- (void)playPauseKeyNotification {
-    /*_playKey = YES;
-    [self performKeyEquivalent:nil];
-    _playKey = NO;*/
+/*
+ * TODO: Make optionally used, for class support w/o HKCenter
+ * Needed for media key support in the hotkeyview
+ */
+- (void)keyDownNotification:(NSNotification*)notif {
+    if(!_hasFocus)
+        return;
+    NSValue *wrapVal = [notif.userInfo objectForKey:@"keycode"];
+    NSInteger keyCode;
+    [wrapVal getValue:&keyCode];
+    DLoglong(keyCode);
+    self.hotkey = [[GKHotKey alloc] initWithKeyCode:keyCode];
 }
 
-- (void)nextKeyNotification {
-    /*_nextKey = YES;
-    [self performKeyEquivalent:nil];
-    _nextKey = NO;*/
+- (void)dealloc {
+    [self removeObserver:self forKeyPath:@"hotkey"];
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
-- (void)previousKeyNotification {
-    //DLogFunc();
-    /*_backKey = YES;
-    [self performKeyEquivalent:nil];
-    _backKey = NO;*/
-}
-
-- (void)drawRect:(NSRect)dirtyRect {
-    [NSGraphicsContext saveGraphicsState];
-    
-    CGContextRef context = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
-    
-    // Set view background as white
-    [[NSColor whiteColor] set];
-    NSRectFill([self bounds]);
-    
-    // Draw border around view
-    NSBezierPath *border = [NSBezierPath bezierPathWithRect:NSInsetRect([self bounds], 0.5, 0.5)];
-    [[NSColor colorWithDeviceWhite:0.780 alpha:1.000] set];
-    [border setLineWidth:1.0];
-    [border stroke];
-    
-    // Draw Text
-    NSString *mString = @"⇧⌃⌥⌘ ";
-    // should be: NSString *mString = [GKHotKey modifierStringRepresentation:@"shift", @"ctrl", @"alt", @"cmd", nil];
-    // ctrl => control, ctl
-    // alt  => option, opt
-    // cmd  => command
-    
-    if(_hotkey)
-        mString = [mString stringByAppendingString:[_hotkey characterStringRepresentation]];
-    
-    CGFloat fontSize = [self fontSizeForAreaSize:[self bounds].size withString:mString]; // optimal => 22.0f
-    NSFont *textFont = [NSFont fontWithName:@"Helvetica" size:fontSize];
-    NSColor *activeTextColor = [NSColor colorWithCalibratedHue:0.775 saturation:1.000 brightness:0.438 alpha:1.000];
-    
-    NSDictionary *attr = [[NSDictionary alloc] initWithObjectsAndKeys: 
-                          textFont, NSFontAttributeName, 
-                          activeTextColor, NSForegroundColorAttributeName, nil];
-    
-    NSMutableAttributedString *attrString = [[NSMutableAttributedString alloc] initWithString:mString attributes:attr];
-    
-    //DLogObject(NSStringFromRect([self bounds]));
-    //DLogFLOAT(fontSize);
-    
-    NSColor *disabledTextColor = [NSColor colorWithCalibratedWhite:0.902 alpha:1.000];
-    if(!_hotkey.hasShiftKey)
-        [attrString addAttribute:NSForegroundColorAttributeName value:disabledTextColor range:NSMakeRange(0, 1)];
-    if(!_hotkey.hasControlKey)
-        [attrString addAttribute:NSForegroundColorAttributeName value:disabledTextColor range:NSMakeRange(1, 1)];
-    if(!_hotkey.hasAlternateKey)
-        [attrString addAttribute:NSForegroundColorAttributeName value:disabledTextColor range:NSMakeRange(2, 1)];
-    if(!_hotkey.hasCommandKey)
-        [attrString addAttribute:NSForegroundColorAttributeName value:disabledTextColor range:NSMakeRange(3, 1)];
-    
-    CTLineRef line = CTLineCreateWithAttributedString((__bridge CFAttributedStringRef)attrString);
-    
-    CGContextSetTextMatrix(context, CGAffineTransformIdentity);	
-    CGContextSetTextPosition(context, 8.0, round(self.bounds.size.height * 0.28125)); 
-    CTLineDraw(line, context);
-    
-    CFRelease(line);
-
-    // Draw Focus Ring (when focused)
-    if (_hasFocus || self == [[self window] firstResponder]) {
-        [NSGraphicsContext saveGraphicsState];
-        NSSetFocusRingStyle(NSFocusRingOnly);
-        [[NSBezierPath bezierPathWithRect:NSInsetRect([self bounds], 0.0, 0.0)] fill];
-        [NSGraphicsContext restoreGraphicsState];
-    }
-
-    [NSGraphicsContext restoreGraphicsState];
-}
+#pragma mark - NSObject event behavior
 
 - (BOOL)acceptsFirstMouse:(NSEvent *)theEvent {
     return YES;
@@ -149,23 +75,25 @@
 }
 
 - (BOOL)becomeFirstResponder {
+    [self lockFocus];
+    _hasFocus = YES;
     [self setNeedsDisplay:YES];
-    if(self == [[self window] firstResponder]) {
-        [self mouseUp:nil];
-    }
+    //if(self == [[self window] firstResponder]) {
+    //    [self mouseUp:nil];
+    //}
     return YES;
 }
 
 - (BOOL)resignFirstResponder {
-    [self setNeedsDisplay:YES];
+    //[self unlockFocus];
     _hasFocus = NO;
+    [self setNeedsDisplay:YES];
     return YES;
 }
 
-- (void)mouseUp:(NSEvent *)theEvent {
-    [self lockFocus];
-    _hasFocus = YES;
-}
+/*- (void)mouseUp:(NSEvent *)theEvent {
+
+}*/
 
 /*- (BOOL)isOpaque {
     return YES;
@@ -185,42 +113,132 @@
     }
 }*/
 
+#define NX_KEYTYPE_DELETE 51
+#define NX_KEYTYPE_ESCAPE 53
+
+- (BOOL)performKeyEquivalent:(NSEvent *)theEvent {
+    unsigned short code = theEvent.keyCode;
+    DLogINT(code);
+    if(code == NX_KEYTYPE_DELETE || code == NX_KEYTYPE_ESCAPE) {
+        self.hotkey = nil;
+        return YES;
+    } else if(_hasFocus && [GKHotKey validEvent:theEvent]) {
+        self.hotkey = [[GKHotKey alloc] initWithEvent:theEvent];
+        return YES;
+    } else
+        return [super performKeyEquivalent:theEvent];
+}
+
+#pragma mark - NSView appearance
+
+- (void)drawRect:(NSRect)dirtyRect {
+    [NSGraphicsContext saveGraphicsState];
+    
+    CGContextRef context = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
+    
+    // >>>>>>>>>> Set view background as white
+    [[NSColor whiteColor] set];
+    NSRectFill([self bounds]);
+    
+    // >>>>>>>>>> Draw border around view
+    NSBezierPath *border = [NSBezierPath bezierPathWithRect:NSInsetRect([self bounds], 0.5, 0.5)];
+    [[NSColor colorWithDeviceWhite:0.78 alpha:1] set];
+    [border setLineWidth:1];
+    [border stroke];
+    
+    // >>>>>>>>>> Setup Text and Attributes
+    NSString *hkString = _hotkey ? _hotkey.symbolicStringWithModifiers : @"⇧⌃⌥⌘ ";
+    
+    CGFloat fontSize = [self fontSizeForAreaSize:self.bounds.size withString:hkString]; // optimal => 22.0f
+    NSFont *textFont = [NSFont fontWithName:@"Helvetica" size:fontSize]; //[NSFont systemFontOfSize:fontSize]; //
+    NSColor *liveColor = [NSColor colorWithCalibratedHue:0.775 saturation:1 brightness:0.438 alpha:1];
+    
+    NSDictionary *attr = [[NSDictionary alloc] initWithObjectsAndKeys: 
+                          textFont, NSFontAttributeName, 
+                          liveColor, NSForegroundColorAttributeName, nil];
+    
+    NSMutableAttributedString *nsStr = [[NSMutableAttributedString alloc] initWithString:hkString attributes:attr];
+    CFMutableAttributedStringRef cfStr = (__bridge CFMutableAttributedStringRef)nsStr;
+    NSUInteger strLen = [nsStr length];
+    
+    //DLogObject(NSStringFromRect([self bounds]));
+    //DLogFLOAT(fontSize);
+    
+    // >>>>>>>>>>> Set modifier keys gray if inactive
+    NSColor *deadColor = [NSColor colorWithCalibratedWhite:0.902 alpha:1];
+    if(!_hotkey.hasShiftKey)
+        [nsStr addAttribute:NSForegroundColorAttributeName value:deadColor range:NSMakeRange(0, 1)];
+    if(!_hotkey.hasControlKey)
+        [nsStr addAttribute:NSForegroundColorAttributeName value:deadColor range:NSMakeRange(1, 1)];
+    if(!_hotkey.hasAlternateKey)
+        [nsStr addAttribute:NSForegroundColorAttributeName value:deadColor range:NSMakeRange(2, 1)];
+    if(!_hotkey.hasCommandKey)
+        [nsStr addAttribute:NSForegroundColorAttributeName value:deadColor range:NSMakeRange(3, 1)];
+    
+    // >>>>>>>>>> Media Symbols
+    
+    if(_hotkey.hasMediaKey) {
+        CTFontRef uniCharFont = (__bridge CTFontRef)[NSFont fontWithName:@"Webdings" size:round(fontSize*.869)];
+        CTFontRef pauseFont = (__bridge CTFontRef)[NSFont fontWithName:@"Webdings" size:round(fontSize*1.27)];
+        
+        int uniCharLen = _hotkey.isPlayKey ? 1 : 2;
+        CFRange uniCharRange = strLen > 5 ? CFRangeMake(5, uniCharLen) : CFRangeMake(0, 0);
+        CFRange pauseRange = _hotkey.isPlayKey && strLen > 5 ? CFRangeMake(6, 1) : CFRangeMake(0, 0);
+        CFAttributedStringSetAttribute(cfStr, uniCharRange, kCTFontAttributeName, uniCharFont);
+        CFAttributedStringSetAttribute(cfStr, pauseRange, kCTFontAttributeName, pauseFont);
+        
+        int nextBackAdj = _hotkey.isNextKey ? round(fontSize*-.043478) : round(fontSize*-.2174);
+        int kernAdjVal = _hotkey.isPlayKey ? round(fontSize*-.30435) : nextBackAdj;
+        CFNumberRef uniCharKernAdj = (__bridge CFNumberRef)[NSNumber numberWithInt:kernAdjVal];
+        CFAttributedStringSetAttribute(cfStr, uniCharRange, kCTKernAttributeName, uniCharKernAdj);
+    }
+    
+    // >>>>>>>>>>> Draw text
+    CTLineRef line = CTLineCreateWithAttributedString(cfStr);
+    
+    CGContextSetTextMatrix(context, CGAffineTransformIdentity);	
+    CGContextSetTextPosition(context, 8, round(self.bounds.size.height * .27)); 
+    CTLineDraw(line, context);
+    
+    CFRelease(line);
+    
+    // >>>>>>>>>> Draw Focus Ring (when focused)
+    if (_hasFocus || self == [[self window] firstResponder]) {
+        [NSGraphicsContext saveGraphicsState];
+        NSSetFocusRingStyle(NSFocusRingOnly);
+        [[NSBezierPath bezierPathWithRect:NSInsetRect([self bounds], 0, 0)] fill];
+        [NSGraphicsContext restoreGraphicsState];
+    }
+    
+    [NSGraphicsContext restoreGraphicsState];
+}
+
 - (CGFloat)fontSizeForAreaSize:(NSSize)areaSize withString:(NSString *)stringToSize {
     NSFont *displayFont = nil;
     NSSize stringSize = NSZeroSize;
     NSMutableDictionary *fontAttributes = [[NSMutableDictionary alloc] init];
-
-    if (areaSize.width == 0.0 && areaSize.height == 0.0)
-        return 0.0;
-
+    
+    if (areaSize.width == 0 && areaSize.height == 0)
+        return 0;
+    
     NSUInteger fontLoop = 0;
     for (fontLoop = 1; fontLoop <= 10000; fontLoop++) {
         NSFont *textFont = [NSFont fontWithName:@"Helvetica" size:fontLoop];
         displayFont = [[NSFontManager sharedFontManager] convertWeight:YES ofFont:textFont];
         [fontAttributes setObject:displayFont forKey:NSFontAttributeName];
         stringSize = [stringToSize sizeWithAttributes:fontAttributes];
-
+        
         if (stringSize.width > areaSize.width)
             break;
         if (stringSize.height > areaSize.height)
             break;
     }
     
-    return (CGFloat)fontLoop - 5.0;
-}
-
-- (BOOL)performKeyEquivalent:(NSEvent *)theEvent {
-    NSLog(@" sjfkla %@", [theEvent charactersIgnoringModifiers]);
-    if(_hasFocus && [GKHotKey validEvent:theEvent]) {
-        self.hotkey = [[GKHotKey alloc] initHotKeyWithEvent:theEvent];
-        return YES;
-    } else
-        return [super performKeyEquivalent:theEvent];
+    return (CGFloat)fontLoop - 5;
 }
 
 - (NSFocusRingType)focusRingType {
     return NSFocusRingTypeExterior;
 }
-
 
 @end
