@@ -5,7 +5,7 @@
 //  Created by Gaurav Khanna on 8/16/10.
 //
 
-#import "WebView+Additions.h"
+#import "WebView+GKAdditions.h"
 
 @implementation WebView (Additions)
 

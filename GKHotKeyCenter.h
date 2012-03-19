@@ -24,10 +24,12 @@
 //  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+#import <Foundation/Foundation.h>
 #import <IOKit/hidsystem/ev_keymap.h>
 #import "singleton.h"
 
 extern NSString * const KeyboardKeyDownNotification;
+extern NSString * const KeyboardKeyUpNotification;
 extern NSString * const MediaKeyPlayPauseNotification;
 extern NSString * const MediaKeyNextNotification;
 extern NSString * const MediaKeyPreviousNotification;

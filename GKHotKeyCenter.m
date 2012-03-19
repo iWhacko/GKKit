@@ -28,6 +28,7 @@
 #import "GKHotKeyCenter.h"
 
 NSString * const KeyboardKeyDownNotification = @"KeyboardKeyDownNotification";
+NSString * const KeyboardKeyUpNotification = @"KeyboardKeyUpNotification";
 NSString * const MediaKeyPlayPauseNotification = @"MediaKeyPlayPauseNotification";
 NSString * const MediaKeyNextNotification = @"MediaKeyNextNotification";
 NSString * const MediaKeyPreviousNotification = @"MediaKeyPreviousNotification";
@@ -36,35 +37,55 @@ NSString * const MediaKeyPreviousNotification = @"MediaKeyPreviousNotification";
 #define NX_KEYSTATE_DOWN    0x0B
 
 CGEventRef tapEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void *refcon) {
-    if(type == kCGEventTapDisabledByTimeout)
+    if(type == kCGEventTapDisabledByTimeout) {
         CGEventTapEnable([[GKHotKeyCenter sharedCenter] eventPort], TRUE);
-    
-    if(type != NX_SYSDEFINED) 
         return event;
+    }
+    
+    if(type != NX_SYSDEFINED) {
+        return event;
+    }
     
 	NSEvent *nsEvent = [NSEvent eventWithCGEvent:event];
     
-    if(nsEvent.subtype != 8) 
+    if(nsEvent.subtype != 8)
         return event;
     
-    int data = [nsEvent data1];
-    //DLogINT([nsEvent keyCode]);
-    int keyCode = (data & 0xFFFF0000) >> 16;
-    DLogINT(keyCode);
-    int keyFlags = (data & 0xFFFF);
-    int keyState = (keyFlags & 0xFF00) >> 8;
+    // CGEventGetFlags
+    // CGEventKeyboardGetUnicodeString
+    // CGEventGetDoubleValueField(event, kCGMouseEventSubtype);
+    
+    NSInteger data = [nsEvent data1];
+    NSInteger keyFlags = (data & 0xFFFF);
+    NSInteger keyCode = (data & 0xFFFF0000) >> 16;
+    NSInteger keyState = (keyFlags & 0xFF00) >> 8;
     BOOL keyIsRepeat = (keyFlags & 0x1) > 0;
     
     if(keyIsRepeat) 
         return event;
     
     NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+    
+    
+    if(keyState == NX_KEYSTATE_DOWN) {
+        NSValue *wrapVal = [[NSValue alloc] initWithBytes:&keyCode objCType:@encode(NSInteger)];
+        NSDictionary *dict = [[NSDictionary alloc] initWithObjectsAndKeys:wrapVal, @"keycode", nil];
+        [center postNotificationName:KeyboardKeyDownNotification object:(__bridge id)refcon userInfo:dict];
+    }
+    
+    if(keyState == NX_KEYSTATE_UP) {
+        NSValue *wrapVal = [[NSValue alloc] initWithBytes:&keyCode objCType:@encode(NSInteger)];
+        NSDictionary *dict = [[NSDictionary alloc] initWithObjectsAndKeys:wrapVal, @"keycode", nil];
+        [center postNotificationName:KeyboardKeyUpNotification object:(__bridge id)refcon userInfo:dict];
+    }
+    
+    
     switch (keyCode) {
         case NX_KEYTYPE_PLAY:
             if(keyState == NX_KEYSTATE_DOWN)
                 [center postNotificationName:MediaKeyPlayPauseNotification object:(__bridge id)refcon];
             if(keyState == NX_KEYSTATE_UP || keyState == NX_KEYSTATE_DOWN)
-                return NULL;
+                return NULL; // to deactivate iTunes from receiving event
             break;
         case NX_KEYTYPE_FAST:
             if(keyState == NX_KEYSTATE_DOWN)
@@ -75,14 +96,6 @@ CGEventRef tapEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef 
         case NX_KEYTYPE_REWIND:
             if(keyState == NX_KEYSTATE_DOWN)
                 [center postNotificationName:MediaKeyPreviousNotification object:(__bridge id)refcon];
-            if(keyState == NX_KEYSTATE_UP || keyState == NX_KEYSTATE_DOWN)
-                return NULL;
-            break;
-        default:
-            if(keyState == NX_KEYSTATE_DOWN) {
-                NSDictionary *dict = [[NSDictionary alloc] initWithObjectsAndKeys:[NSNumber numberWithInt:keyCode], @"keycode", nil];
-                [center postNotificationName:KeyboardKeyDownNotification object:(__bridge id)refcon userInfo:dict];
-            }
             if(keyState == NX_KEYSTATE_UP || keyState == NX_KEYSTATE_DOWN)
                 return NULL;
             break;
