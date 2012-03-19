@@ -14,6 +14,10 @@
 
 #pragma mark - NSObject life cycle
 
+- (id)init {
+    return [self initWithFrame:CGRectMake(0, 0, 237, 34)];
+}
+
 - (id)initWithFrame:(NSRect)frame {
     if ((self = [super initWithFrame:frame])) {
         _hotkey = nil;
@@ -23,9 +27,6 @@
         
         NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
         [center addObserver:self selector:@selector(keyDownNotification:) name:@"KeyboardKeyDownNotification" object:nil];
-        //[center addObserver:self selector:@selector(playPauseKeyNotification) name:MediaKeyPlayPauseNotification object:nil];
-        //[center addObserver:self selector:@selector(nextKeyNotification) name:MediaKeyNextNotification object:nil];
-        //[center addObserver:self selector:@selector(previousKeyNotification) name:MediaKeyPreviousNotification object:nil];
     }
     return self;
 }
