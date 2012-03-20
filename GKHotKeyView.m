@@ -118,8 +118,9 @@
 #define NX_KEYTYPE_ESCAPE 53
 
 - (BOOL)performKeyEquivalent:(NSEvent *)theEvent {
+    DLogObject(theEvent);
     unsigned short code = theEvent.keyCode;
-    if(code == NX_KEYTYPE_DELETE || code == NX_KEYTYPE_ESCAPE) {
+    if(_hasFocus && (code == NX_KEYTYPE_DELETE || code == NX_KEYTYPE_ESCAPE)) {
         self.hotkey = nil;
         return YES;
     } else if(_hasFocus && [GKHotKey validEvent:theEvent]) {
