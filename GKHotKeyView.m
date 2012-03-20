@@ -56,8 +56,9 @@
     NSValue *wrapVal = [notif.userInfo objectForKey:@"keycode"];
     NSInteger keyCode;
     [wrapVal getValue:&keyCode];
-    DLoglong(keyCode);
     self.hotkey = [[GKHotKey alloc] initWithKeyCode:keyCode];
+    DLogFunc();
+    DLogObject(self.hotkey);
 }
 
 - (void)dealloc {
@@ -119,12 +120,13 @@
 
 - (BOOL)performKeyEquivalent:(NSEvent *)theEvent {
     unsigned short code = theEvent.keyCode;
-    DLogINT(code);
     if(code == NX_KEYTYPE_DELETE || code == NX_KEYTYPE_ESCAPE) {
         self.hotkey = nil;
         return YES;
     } else if(_hasFocus && [GKHotKey validEvent:theEvent]) {
         self.hotkey = [[GKHotKey alloc] initWithEvent:theEvent];
+        DLogFunc();
+        DLogObject(self.hotkey);
         return YES;
     } else
         return [super performKeyEquivalent:theEvent];
@@ -137,17 +139,17 @@
     
     CGContextRef context = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
     
-    // >>>>>>>>>> Set view background as white
+    // Set view background as white
     [[NSColor whiteColor] set];
     NSRectFill([self bounds]);
     
-    // >>>>>>>>>> Draw border around view
+    // Draw border around view
     NSBezierPath *border = [NSBezierPath bezierPathWithRect:NSInsetRect([self bounds], 0.5, 0.5)];
     [[NSColor colorWithDeviceWhite:0.78 alpha:1] set];
     [border setLineWidth:1];
     [border stroke];
     
-    // >>>>>>>>>> Setup Text and Attributes
+    // Setup Text and Attributes
     NSString *hkString = _hotkey ? _hotkey.symbolicStringWithModifiers : @"⇧⌃⌥⌘ ";
     
     CGFloat fontSize = [self fontSizeForAreaSize:self.bounds.size withString:hkString]; // optimal => 22.0f
@@ -165,7 +167,7 @@
     //DLogObject(NSStringFromRect([self bounds]));
     //DLogFLOAT(fontSize);
     
-    // >>>>>>>>>>> Set modifier keys gray if inactive
+    // Set modifier keys gray if inactive
     NSColor *deadColor = [NSColor colorWithCalibratedWhite:0.902 alpha:1];
     if(!_hotkey.hasShiftKey)
         [nsStr addAttribute:NSForegroundColorAttributeName value:deadColor range:NSMakeRange(0, 1)];
@@ -176,7 +178,7 @@
     if(!_hotkey.hasCommandKey)
         [nsStr addAttribute:NSForegroundColorAttributeName value:deadColor range:NSMakeRange(3, 1)];
     
-    // >>>>>>>>>> Media Symbols
+    // Media Symbols
     
     if(_hotkey.hasMediaKey) {
         CTFontRef uniCharFont = (__bridge CTFontRef)[NSFont fontWithName:@"Webdings" size:round(fontSize*.869)];
@@ -194,7 +196,7 @@
         CFAttributedStringSetAttribute(cfStr, uniCharRange, kCTKernAttributeName, uniCharKernAdj);
     }
     
-    // >>>>>>>>>>> Draw text
+    // Draw text
     CTLineRef line = CTLineCreateWithAttributedString(cfStr);
     
     CGContextSetTextMatrix(context, CGAffineTransformIdentity);	
@@ -203,7 +205,7 @@
     
     CFRelease(line);
     
-    // >>>>>>>>>> Draw Focus Ring (when focused)
+    // Draw Focus Ring (when focused)
     if (_hasFocus || self == [[self window] firstResponder]) {
         [NSGraphicsContext saveGraphicsState];
         NSSetFocusRingStyle(NSFocusRingOnly);
