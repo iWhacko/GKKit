@@ -53,9 +53,8 @@
 - (void)keyDownNotification:(NSNotification*)notif {
     if(!_hasFocus)
         return;
-    NSValue *wrapVal = [notif.userInfo objectForKey:@"keycode"];
-    NSInteger keyCode;
-    [wrapVal getValue:&keyCode];
+    NSNumber *wrapVal = [notif.userInfo objectForKey:@"keycode"];
+    NSInteger keyCode = [wrapVal integerValue];
     self.hotkey = [[GKHotKey alloc] initWithKeyCode:keyCode];
     DLogFunc();
     DLogObject(self.hotkey);
