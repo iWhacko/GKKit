@@ -5,6 +5,12 @@
 //  Created by Gaurav Khanna on 11/8/10.
 //  Copyright (c) 2010 GK Apps. All rights reserved.
 //
+//  Symbol Reference: http://macbiblioblog.blogspot.com/2005/05/special-key-symbols.html
+//  APPL KB Reference: http://www.unicode.org/Public/MAPPINGS/VENDORS/APPLE/KEYBOARD.TXT
+//
+//  Usage: A View with initial value of "⌘⌥+J"
+//
+//      GKHotKeyView *ahkView = [[GKHotKey alloc] initWithTrigger:@"j" modifierNames:@"cmd", @"alt", nil];
 
 #import <Cocoa/Cocoa.h>
 #import <ApplicationServices/ApplicationServices.h>
