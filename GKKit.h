@@ -13,4 +13,9 @@
         #import "GKActivityView.h"
         #import "GKSearchController.h"
     #endif
+    #if MAC_ONLY
+        #import "GKHotKey.h"
+        #import "GKHotKeyView.h"
+        #import "GKHotKeyCenter.h"
+    #endif
 #endif
