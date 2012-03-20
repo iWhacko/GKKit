@@ -128,14 +128,14 @@
             
             CGEventKeyboardGetUnicodeString(keyEvent, maxStrLength, &actualStrLength, strBuf); 
             
-            DLoglong(actualStrLength);
+            //DLoglong(actualStrLength);
             //DLogSTR(str);
             
             CFStringRef cfStr = CFStringCreateWithCharacters(NULL, strBuf, actualStrLength);
             
             NSString *nsStr = [(__bridge NSString*)cfStr capitalizedString];
             
-            DLogObject(nsStr);
+            //DLogObject(nsStr);
             
             CFRelease(keyEvent);
             CFRelease(cfStr);
