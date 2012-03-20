@@ -68,13 +68,13 @@ CGEventRef tapEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef 
     
     
     if(keyState == NX_KEYSTATE_DOWN) {
-        NSValue *wrapVal = [[NSValue alloc] initWithBytes:&keyCode objCType:@encode(NSInteger)];
+        NSNumber *wrapVal = [NSNumber numberWithInteger:keyCode];
         NSDictionary *dict = [[NSDictionary alloc] initWithObjectsAndKeys:wrapVal, @"keycode", nil];
         [center postNotificationName:KeyboardKeyDownNotification object:(__bridge id)refcon userInfo:dict];
     }
     
     if(keyState == NX_KEYSTATE_UP) {
-        NSValue *wrapVal = [[NSValue alloc] initWithBytes:&keyCode objCType:@encode(NSInteger)];
+        NSValue *wrapVal = [NSNumber numberWithInteger:keyCode];
         NSDictionary *dict = [[NSDictionary alloc] initWithObjectsAndKeys:wrapVal, @"keycode", nil];
         [center postNotificationName:KeyboardKeyUpNotification object:(__bridge id)refcon userInfo:dict];
     }
