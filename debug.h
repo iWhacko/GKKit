@@ -68,6 +68,7 @@
             #define DLogCGPoint(CGPoint)    NSLog(@"%s:%s;%@;", Q(DLOG_PREFIX), #CGPoint, NSStringFromCGPoint(CGPoint))
         #elif MAC_ONLY
             #define DLogCGRect(CGRect)  NSLog(@"%s:%s;%@;", Q(DLOG_PREFIX), #CGRect, NSStringFromRect(NSRectFromCGRect(CGRect)))
+            #define DLogNSRect(NSRect)  NSLog(@"%s:%s;%@;", Q(DLOG_PREFIX), #NSRect, NSStringFromRect(NSRect))
         #endif
 
 #pragma mark - Time Logging
@@ -200,5 +201,6 @@
         #define DEndMod(obj, object) do{}while(0)
         #define DLogThread() do{}while(0)
         #define DLoglong() do{}while(0)
+        #define DLogNSRect() do{}while(0)
     #endif
 #endif
