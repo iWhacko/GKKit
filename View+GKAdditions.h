@@ -8,7 +8,7 @@
 #import <Foundation/Foundation.h>
 #import "common.h"
 
-#if MAC_ONLY
+#ifdef MAC_ONLY
 #define GKView NSView
 
 @interface NSView (GKAdditions)
@@ -16,6 +16,7 @@
 + (void)dumpView:(NSView *)view prefix:(NSString *)prefix indent:(NSString *)indent;
 - (void)dump;
 - (NSString *)hierarchalDescription;
+- (IBAction)setHidden:(BOOL)hidden withFade:(BOOL)fade;
 
 @end
 
