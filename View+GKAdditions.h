@@ -17,6 +17,7 @@
 - (void)dump;
 - (NSString *)hierarchalDescription;
 - (IBAction)setHidden:(BOOL)hidden withFade:(BOOL)fade;
+- (void)setHidden:(BOOL)hidden withFade:(BOOL)fade delegate:(id<NSAnimationDelegate>)delegate;
 
 @end
 

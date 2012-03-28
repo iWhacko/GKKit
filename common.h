@@ -33,10 +33,13 @@
         #define IPHONE_ONLY 1
     #endif
 
+    #ifndef APP_DEL_CLS
+        #define APP_DEL_CLS AppDelegate*
+    #endif
+
     #ifdef MAC_ONLY
-        #define GKApp [NSApplication sharedApplication]
-        #define GKAppDelegate (id)[[NSApplication sharedApplication] delegate]
-        #define GKApp [NSApplication sharedApplication]
+        #define GKApp ([NSApplication sharedApplication])
+        #define GKAppDelegate ((APP_DEL_CLS)[[NSApplication sharedApplication] delegate])
         #define GKRect NSRect
         #define GKView NSView
         #define GKWindow NSWindow
@@ -44,7 +47,7 @@
     #elif IPHONE_ONLY
         #import <QuartzCore/QuartzCore.h>
         #define GKApp [UIApplication sharedApplication]
-        #define GKAppDelegate [UIApp delegate]
+        #define GKAppDelegate ((APP_DEL_CLS)[UIApp delegate])
         #define GKRect CGRect
         #define GKView UIView
         #define GKWindow UIWindow
