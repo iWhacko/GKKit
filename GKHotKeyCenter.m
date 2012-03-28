@@ -55,10 +55,10 @@ CGEventRef tapEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef 
     // CGEventKeyboardGetUnicodeString
     // CGEventGetDoubleValueField(event, kCGMouseEventSubtype);
     
-    NSInteger data = [nsEvent data1];
-    NSInteger keyFlags = (data & 0xFFFF);
-    NSInteger keyCode = (data & 0xFFFF0000) >> 16;
-    NSInteger keyState = (keyFlags & 0xFF00) >> 8;
+    int data = [nsEvent data1];
+    int keyFlags = (data & 0xFFFF);
+    int keyCode = (data & 0xFFFF0000) >> 16;
+    int keyState = (keyFlags & 0xFF00) >> 8;
     BOOL keyIsRepeat = (keyFlags & 0x1) > 0;
     
     if(keyIsRepeat) 
@@ -66,9 +66,53 @@ CGEventRef tapEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef 
     
     NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
     
+    switch (keyCode) {
+        case NX_KEYTYPE_PLAY:
+            if(keyState == NX_KEYSTATE_DOWN) {
+                [center postNotificationName:MediaKeyPlayPauseNotification object:(__bridge id)refcon];
+                GKHotKey *key = [[GKHotKey alloc] initWithKeyCode:keyCode];
+                NSDictionary *dict = [[NSDictionary alloc] initWithObjectsAndKeys:key, @"key", nil];
+                [center postNotificationName:KeyboardKeyDownNotification object:(__bridge id)refcon userInfo:dict];
+            }
+            if(keyState == NX_KEYSTATE_UP || keyState == NX_KEYSTATE_DOWN)
+                return NULL; // to deactivate iTunes from receiving event
+            break;
+        case NX_KEYTYPE_FAST:
+            if(keyState == NX_KEYSTATE_DOWN) {
+                [center postNotificationName:MediaKeyNextNotification object:(__bridge id)refcon];
+                GKHotKey *key = [[GKHotKey alloc] initWithKeyCode:keyCode];
+                NSDictionary *dict = [[NSDictionary alloc] initWithObjectsAndKeys:key, @"key", nil];
+                [center postNotificationName:KeyboardKeyDownNotification object:(__bridge id)refcon userInfo:dict];
+            }
+            if(keyState == NX_KEYSTATE_UP || keyState == NX_KEYSTATE_DOWN)
+                return NULL;
+            break;
+        case NX_KEYTYPE_REWIND:
+            if(keyState == NX_KEYSTATE_DOWN) {
+                [center postNotificationName:MediaKeyPreviousNotification object:(__bridge id)refcon];
+                GKHotKey *key = [[GKHotKey alloc] initWithKeyCode:keyCode];
+                NSDictionary *dict = [[NSDictionary alloc] initWithObjectsAndKeys:key, @"key", nil];
+                [center postNotificationName:KeyboardKeyDownNotification object:(__bridge id)refcon userInfo:dict];
+            }
+            if(keyState == NX_KEYSTATE_UP || keyState == NX_KEYSTATE_DOWN)
+                return NULL;
+            break;
+    }
     
     if(keyState == NX_KEYSTATE_DOWN) {
-        NSNumber *wrapVal = [NSNumber numberWithInteger:keyCode];
+        /*GKHotKey *key = [[GKHotKey alloc] init];
+         DLogINT(keyFlags);
+         DLogINT(keyCode);
+         NSNumber *code = [NSNumber numberWithUnsignedShort:keyCode];
+         NSNumber *mods = [NSNumber numberWithUnsignedInteger:keyFlags];
+         key.key = code;
+         key.modifierKey = mods;
+         DLogObject(code);
+         DLogObject(mods);
+         DLogObject(key);
+         GKHotKey *key2 = [[GKHotKey alloc] initWithKeyCode:keyCode];
+         DLogObject(key2);*/
+        NSValue *wrapVal = [NSNumber numberWithInteger:keyCode];
         NSDictionary *dict = [[NSDictionary alloc] initWithObjectsAndKeys:wrapVal, @"keycode", nil];
         [center postNotificationName:KeyboardKeyDownNotification object:(__bridge id)refcon userInfo:dict];
     }
@@ -79,27 +123,6 @@ CGEventRef tapEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef 
         [center postNotificationName:KeyboardKeyUpNotification object:(__bridge id)refcon userInfo:dict];
     }
     
-    
-    switch (keyCode) {
-        case NX_KEYTYPE_PLAY:
-            if(keyState == NX_KEYSTATE_DOWN)
-                [center postNotificationName:MediaKeyPlayPauseNotification object:(__bridge id)refcon];
-            if(keyState == NX_KEYSTATE_UP || keyState == NX_KEYSTATE_DOWN)
-                return NULL; // to deactivate iTunes from receiving event
-            break;
-        case NX_KEYTYPE_FAST:
-            if(keyState == NX_KEYSTATE_DOWN)
-                [center postNotificationName:MediaKeyNextNotification object:(__bridge id)refcon];
-            if(keyState == NX_KEYSTATE_UP || keyState == NX_KEYSTATE_DOWN)
-                return NULL;
-            break;
-        case NX_KEYTYPE_REWIND:
-            if(keyState == NX_KEYSTATE_DOWN)
-                [center postNotificationName:MediaKeyPreviousNotification object:(__bridge id)refcon];
-            if(keyState == NX_KEYSTATE_UP || keyState == NX_KEYSTATE_DOWN)
-                return NULL;
-            break;
-    }
     return event;
 }
 

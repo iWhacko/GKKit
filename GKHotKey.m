@@ -14,7 +14,7 @@
 @synthesize keyCode;
 @synthesize modifierFlags;
 
-#pragma mark - Class Convenience Methods
+#pragma mark - Class Data Methods
 
 + (BOOL)validEvent:(NSEvent *)theEvent {
     return ((theEvent.modifierFlags & NSControlKeyMask) != 0 
@@ -145,6 +145,12 @@
     }
 }
 
+#pragma mark - Class Instantiation Convenience Methods
+
++ (id)hotKeyWithKey:(NSNumber*)num {
+    return [[GKHotKey alloc] initWithKeyCode:[num unsignedShortValue] modifierFlags:0];
+}
+
 #pragma mark - NSObject life cycle
 
 - (id)init {
@@ -152,17 +158,16 @@
         self.modifierFlags = 0;
         self.keyTrigger = nil;
         self.keyCode = 0;
-        //self.key = nil;
-        //self.modifiers = nil;
     }
     return self;
 }
 
 - (id)initWithEvent:(NSEvent *)theEvent {
     if ((self = [super init])) {
-        self.keyTrigger = theEvent.charactersIgnoringModifiers;
-        self.modifierFlags = theEvent.modifierFlags;
         self.keyCode = theEvent.keyCode;
+        self.modifierFlags = theEvent.modifierFlags;
+        if ([theEvent respondsToSelector:@selector(charactersIgnoringModifiers)])
+            self.keyTrigger = theEvent.charactersIgnoringModifiers;
     }
     return self;
 }
@@ -181,32 +186,68 @@
     }
     return self;
 }
-
+/* TODO:
 - (id)initWithTrigger:(NSString *)aCharacter modifierFlags:(NSUInteger)flags {
     if ((self = [super init])) {
         self.modifierFlags = flags;
         self.keyTrigger = aCharacter;
     }
     return self;
+}*/
+
+#pragma mark - NSObject serialization
+
+- (void)encodeWithCoder:(NSCoder *)coder { 
+    [coder encodeObject:self.key forKey:@"key"];      
+    [coder encodeObject:self.modifierKey forKey:@"modifierKey"];         
+} 
+
+- (id)initWithCoder:(NSCoder *)coder {
+    if ((self = [self init])) {
+        self.key = [coder decodeObjectForKey:@"key"];
+        self.modifierKey = [coder decodeObjectForKey:@"modifierKey"];
+    }
+    return self; 
 }
+
+#pragma mark - NSObject String Representations
 
 - (NSString *)description {
-    return [NSString stringWithFormat:@"%@; key:{%i, %@}; mods:{⇧:%i, ⌃:%i, ⌥:%i, ⌘:%i}", 
-            [super description], self.keyCode, self.keyTrigger, 
-            self.hasShiftKey, self.hasControlKey, self.hasAlternateKey, self.hasCommandKey, nil];
+    return [NSString stringWithFormat:@"%@; key:%@(%@); mods:%i%@(%@%@%@%@)", 
+            [super description], self.key, self.keyTrigger,
+            [NSNumber numberWithUnsignedInteger:self.modifierFlags],
+            (self.hasShiftKey ? @"⇧" : @""), 
+            (self.hasControlKey ? @"⌃" : @""), 
+            (self.hasAlternateKey ? @"⌥" : @""), 
+            (self.hasCommandKey ? @"⌘" : @""), nil];
 }
 
-#pragma mark - Character Key Detection
-
-- (NSInteger)key {
-    return [[NSNumber numberWithUnsignedShort:self.keyCode] integerValue];
+- (NSString*)symbolicString {
+    //TODO: implement class method
+    //return [GKHotKey stringRepresentationWithKeyCode:self.keyCode mediaKey:self.hasMediaKey];
+    
+    NSString *symbols = [GKHotKey symbolicStringWithKeyCode:self.keyCode mediaKey:self.hasMediaKey];
+    NSString *keySym = self.keyTrigger.capitalizedString;
+    if (symbols.length == 0) 
+        return (keySym ? keySym : @"");
+    return (symbols ? symbols : @"");
 }
 
-- (void)setKey:(NSInteger)key {
-    self.keyCode = [[NSNumber numberWithInteger:key] unsignedShortValue];
+- (NSString*)symbolicStringWithModifiers {
+    return [@"⇧⌃⌥⌘ " stringByAppendingString:self.symbolicString];
 }
 
-#pragma mark - Modifier Key Detection
+#pragma mark - Character Key Manipulation
+
+- (NSNumber*)key {
+    return [NSNumber numberWithUnsignedShort:self.keyCode];
+}
+
+- (void)setKey:(NSNumber*)keyNum {
+    self.keyCode = [keyNum unsignedShortValue];
+}
+
+#pragma mark - Modifier Flags Manipulation
 
 /* TODO: Convenience for modifier iteration...probably not neccesary
  
@@ -249,6 +290,23 @@
     [self setModifierFlag:NSAlternateKeyMask value:key];
 }
 
+- (NSNumber*)modifierKey {
+    return [NSNumber numberWithUnsignedInteger:self.modifierFlags];
+}
+
+- (void)setModifierKey:(NSNumber*)num {
+    self.modifierFlags = [num unsignedIntegerValue];
+}
+
+- (void)setModifierFlag:(NSUInteger)keyMask value:(BOOL)val {
+    NSUInteger new = self.modifierFlags;
+    if (val)
+        new |= (keyMask);
+    else
+        new &= ~(keyMask);
+    self.modifierFlags = new;
+}
+
 #pragma mark - Media Key Detection
 
 - (BOOL)isPlayKey {
@@ -271,33 +329,6 @@
          || self.keyCode == NX_KEYTYPE_FAST 
          || self.keyCode == NX_KEYTYPE_REWIND )
          && self.modifierFlags == 0;
-}
-
-#pragma mark - HotKey String Representation
-
-- (NSString*)symbolicString {
-    //TODO: implement class method
-    //return [GKHotKey stringRepresentationWithKeyCode:self.keyCode mediaKey:self.hasMediaKey];
-    
-    NSString *symbols = [GKHotKey symbolicStringWithKeyCode:self.keyCode mediaKey:self.hasMediaKey];
-    if (symbols.length == 0) 
-        return self.keyTrigger.capitalizedString;
-    return symbols;
-}
-
-- (NSString*)symbolicStringWithModifiers {
-    return [@"⇧⌃⌥⌘ " stringByAppendingString:self.symbolicString];
-}
-
-#pragma mark - Modifier Flags Modification
-
-- (void)setModifierFlag:(NSUInteger)keyMask value:(BOOL)val {
-    NSUInteger new = self.modifierFlags;
-    if (val)
-        new |= (keyMask);
-    else
-        new &= ~(keyMask);
-    self.modifierFlags = new;
 }
 
 @end

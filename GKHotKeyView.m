@@ -8,6 +8,8 @@
 
 #import "GKHotKeyView.h"
 
+NSString * const GKHotKeyViewChangeNotification = @"GKHotKeyViewChangeNotification";
+
 @implementation GKHotKeyView
 
 @synthesize hotkey = _hotkey;
@@ -41,6 +43,8 @@
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
     if ([keyPath isEqualToString:@"hotkey"]) {
         [self setNeedsDisplay:YES];
+        NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+        [center postNotificationName:GKHotKeyViewChangeNotification object:self];
     } else {
         [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
     }
@@ -53,9 +57,7 @@
 - (void)keyDownNotification:(NSNotification*)notif {
     if(!_hasFocus)
         return;
-    NSNumber *wrapVal = [notif.userInfo objectForKey:@"keycode"];
-    NSInteger keyCode = [wrapVal integerValue];
-    self.hotkey = [[GKHotKey alloc] initWithKeyCode:keyCode];
+    self.hotkey = [notif.userInfo objectForKey:@"key"];
     DLogFunc();
     DLogObject(self.hotkey);
 }
@@ -118,6 +120,7 @@
 #define NX_KEYTYPE_ESCAPE 53
 
 - (BOOL)performKeyEquivalent:(NSEvent *)theEvent {
+    DLogFunc();
     DLogObject(theEvent);
     unsigned short code = theEvent.keyCode;
     if(_hasFocus && (code == NX_KEYTYPE_DELETE || code == NX_KEYTYPE_ESCAPE)) {
