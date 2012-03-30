@@ -38,7 +38,7 @@ NSString * const MediaKeyPreviousNotification = @"MediaKeyPreviousNotification";
 
 CGEventRef tapEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void *refcon) {
     if(type == kCGEventTapDisabledByTimeout) {
-        CGEventTapEnable([[GKHotKeyCenter sharedCenter] eventPort], TRUE);
+        CGEventTapEnable([[GKHotKeyCenter sharedCenter] sysPort], TRUE);
         return event;
     }
     
@@ -67,6 +67,8 @@ CGEventRef tapEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef 
     NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
     
     switch (keyCode) {
+            DLogFunc();
+            DLogINT(keyCode);
         case NX_KEYTYPE_PLAY:
             if(keyState == NX_KEYSTATE_DOWN) {
                 [center postNotificationName:MediaKeyPlayPauseNotification object:(__bridge id)refcon];
@@ -130,27 +132,56 @@ CGEventRef tapEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef 
 
 MAKE_SINGLETON(GKHotKeyCenter, sharedCenter)
 
+#define CGEventTap(keyMask, callback, sender) \
+CGEventTapCreate(kCGSessionEventTap, \
+kCGHeadInsertEventTap, \
+kCGEventTapOptionDefault, \
+CGEventMaskBit(keyMask), \
+callback, \
+sender)
+
 - (id)init {
     if(self = [super init]) {
         CFRunLoopRef runLoop;
-        CFRunLoopSourceRef runLoopSource;
-
-        _eventPort = CGEventTapCreate(kCGSessionEventTap,
-                                      kCGHeadInsertEventTap,
-                                      kCGEventTapOptionDefault,
-                                      CGEventMaskBit(NX_SYSDEFINED),
-                                      tapEventCallback,
-                                      (__bridge void *)(self));
-
-        if(_eventPort == NULL) {
-            NSLog(@"[%s:%d] ERROR: CGEventTapRef could not be created", __PRETTY_FUNCTION__, __LINE__);
+        CFRunLoopSourceRef sysRunSource;
+        CFRunLoopSourceRef downRunSource;
+        CFRunLoopSourceRef upRunSource;
+        
+        _sysPort = CGEventTap(NX_SYSDEFINED, tapEventCallback, (__bridge void*)(self));
+        _downPort = CGEventTap(NX_KEYDOWN, tapEventCallback, (__bridge void*)(self));
+        _upPort = CGEventTap(NX_KEYUP, tapEventCallback, (__bridge void*)(self));
+        
+        if(_sysPort == NULL) {
+            NSLog(@"[%s:%d] ERROR: system key port could not be created", __PRETTY_FUNCTION__, __LINE__);
+            return nil;
+        }
+        
+        if(_downPort == NULL) {
+            NSLog(@"[%s:%d] ERROR: key down port could not be created", __PRETTY_FUNCTION__, __LINE__);
+            return nil;
+        }
+        
+        if(_upPort == NULL) {
+            NSLog(@"[%s:%d] ERROR: key up port could not be created", __PRETTY_FUNCTION__, __LINE__);
             return nil;
         }
 
-        runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorSystemDefault, _eventPort, 0);
+        sysRunSource = CFMachPortCreateRunLoopSource(kCFAllocatorSystemDefault, _sysPort, 0);
+        downRunSource = CFMachPortCreateRunLoopSource(kCFAllocatorSystemDefault, _downPort, 0);
+        upRunSource = CFMachPortCreateRunLoopSource(kCFAllocatorSystemDefault, _upPort, 0);
 
-        if(runLoopSource == NULL) {
-            NSLog(@"[%s:%d] ERROR: CFRunLoopSourceRef could not be created", __PRETTY_FUNCTION__, __LINE__);
+        if(sysRunSource == NULL) {
+            NSLog(@"[%s:%d] ERROR: sys run loop source could not be created", __PRETTY_FUNCTION__, __LINE__);
+            return nil;
+        }
+        
+        if(downRunSource == NULL) {
+            NSLog(@"[%s:%d] ERROR: key down run loop source could not be created", __PRETTY_FUNCTION__, __LINE__);
+            return nil;
+        }
+        
+        if(upRunSource == NULL) {
+            NSLog(@"[%s:%d] ERROR: key up run loop source could not be created", __PRETTY_FUNCTION__, __LINE__);
             return nil;
         }
 
@@ -161,18 +192,24 @@ MAKE_SINGLETON(GKHotKeyCenter, sharedCenter)
             return nil;
         }
 
-        CFRunLoopAddSource(runLoop, runLoopSource, kCFRunLoopCommonModes);
-        CFRelease(runLoopSource);
+        CFRunLoopAddSource(runLoop, sysRunSource, kCFRunLoopCommonModes);
+        CFRunLoopAddSource(runLoop, downRunSource, kCFRunLoopCommonModes);
+        CFRunLoopAddSource(runLoop, upRunSource, kCFRunLoopCommonModes);
+        CFRelease(sysRunSource);
+        CFRelease(downRunSource);
+        CFRelease(upRunSource);
     }
     return self;
 }
 
-- (CFMachPortRef)eventPort {
-    return _eventPort;
+- (CFMachPortRef)sysPort {
+    return _sysPort;
 }
 
 - (void)dealloc {
-    CFRelease(_eventPort);
+    CFRelease(_sysPort);
+    CFRelease(_downPort);
+    CFRelease(_upPort);
 }
 
 @end

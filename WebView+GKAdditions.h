@@ -14,8 +14,10 @@
 
 @interface WebView (Additions)
 
-- (void)keyClickWithKeyCode:(unsigned short)keyCode;
 - (void)mouseClickAtLocation:(NSPoint)point;
+
+- (void)keyClickWithKeyCode:(unsigned short)keyCode;
+- (void)keyClickWithKeyCode:(unsigned short)keyCode modifier:(unsigned short)mod;
 
 @end
 

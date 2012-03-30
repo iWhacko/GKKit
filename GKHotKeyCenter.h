@@ -36,10 +36,12 @@ extern NSString * const MediaKeyPreviousNotification;
 
 @interface GKHotKeyCenter : NSObject {
 @private
-    CFMachPortRef _eventPort;
+    CFMachPortRef _sysPort;
+    CFMachPortRef _downPort;
+    CFMachPortRef _upPort;
 }
 
 + (id)sharedCenter;
-- (CFMachPortRef)eventPort;
+- (CFMachPortRef)sysPort;
 
 @end

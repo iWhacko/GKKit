@@ -44,4 +44,17 @@
                              keyCode:keyCode];
 }
 
++ (id)keyEventWithType:(NSEventType)type keyCode:(unsigned short)keyCode modifiers:(NSUInteger)mod {
+    return [NSEvent keyEventWithType:type 
+                            location:NSMakePoint(490, 540)
+                       modifierFlags:NSShiftKeyMask
+                           timestamp:[NSDate timeIntervalSinceReferenceDate]
+                        windowNumber:[[[NSApp delegate] window] windowNumber] 
+                             context:0
+                          characters:@" "
+         charactersIgnoringModifiers:@" "
+                           isARepeat:FALSE 
+                             keyCode:keyCode];
+}
+
 @end
