@@ -18,6 +18,7 @@
 
     #define NSDef [NSUserDefaults standardUserDefaults]
     #define NSMgr [NSFileManager defaultManager]
+    #define NSDefObj(key) ([NSKeyedUnarchiver unarchiveObjectWithData:[[NSUserDefaults standardUserDefaults] objectForKey:key]]);
     #define $(class) objc_getClass(#class)
     #define OBJC_ARC __has_feature(objc_arc)
     /*#if OBJC_ARC

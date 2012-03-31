@@ -55,9 +55,14 @@ NSString * const GKHotKeyViewChangeNotification = @"GKHotKeyViewChangeNotificati
  * Needed for media key support in the hotkeyview
  */
 - (void)keyDownNotification:(NSNotification*)notif {
+    GKHotKey *key = [notif.userInfo objectForKey:@"key"];
+    if ([key isEqual:self.hotkey] && !_hasFocus) {
+        self.hotkey = nil;
+        return;
+    }
     if(!_hasFocus)
         return;
-    self.hotkey = [notif.userInfo objectForKey:@"key"];
+    self.hotkey = key;
     DLogFunc();
     DLogObject(self.hotkey);
 }
