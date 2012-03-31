@@ -27,19 +27,24 @@
 #import <Foundation/Foundation.h>
 #import <IOKit/hidsystem/ev_keymap.h>
 #import "singleton.h"
+#import "GKHotKey.h"
 
-extern NSString * const KeyboardKeyDownNotification;
-extern NSString * const KeyboardKeyUpNotification;
-extern NSString * const MediaKeyPlayPauseNotification;
-extern NSString * const MediaKeyNextNotification;
-extern NSString * const MediaKeyPreviousNotification;
+@class GKHotKey;
 
 @interface GKHotKeyCenter : NSObject {
 @private
     CFMachPortRef _eventPort;
+    NSMutableArray *_handlers;
 }
 
 + (id)sharedCenter;
-- (CFMachPortRef)eventPort;
+
+#if NS_BLOCKS_AVAILABLE
+// return YES if event should be trapped
+typedef BOOL (^GKHotKeyBlock)(GKHotKey *key, int state);
+
++ (void)registerHandler:(GKHotKeyBlock)block;
++ (void)unregisterHandler:(GKHotKeyBlock)block;
+#endif
 
 @end

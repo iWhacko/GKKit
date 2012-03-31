@@ -29,12 +29,28 @@
 
 NSString * const KeyboardKeyDownNotification = @"KeyboardKeyDownNotification";
 NSString * const KeyboardKeyUpNotification = @"KeyboardKeyUpNotification";
-NSString * const MediaKeyPlayPauseNotification = @"MediaKeyPlayPauseNotification";
-NSString * const MediaKeyNextNotification = @"MediaKeyNextNotification";
-NSString * const MediaKeyPreviousNotification = @"MediaKeyPreviousNotification";
 
 #define NX_KEYSTATE_UP      0x0A
 #define NX_KEYSTATE_DOWN    0x0B
+
+#ifdef BLOCKOBJ
+@interface GKBlockObject : NSObject
+@property (nonatomic, strong) GKHotKeyBlock block;
+@property (nonatomic, assign, getter=handled) BOOL handle;
+@end
+
+@implementation GKBlockObject
+@synthesize block;
+@synthesize handle;
+@end
+#endif 
+
+@interface GKHotKeyCenter (PRIVATE)
+
+- (CFMachPortRef)eventPort;
+- (NSMutableArray*)handlers;
+
+@end
 
 CGEventRef tapEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void *refcon) {
     if(type == kCGEventTapDisabledByTimeout) {
@@ -63,87 +79,115 @@ CGEventRef tapEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef 
     
     if(keyIsRepeat) 
         return event;
+    // filter useless events
+    if (keyState != NX_KEYSTATE_DOWN && keyState != NX_KEYSTATE_UP)
+        return event;
     
-    NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
-    
-    switch (keyCode) {
-        case NX_KEYTYPE_PLAY:
-            if(keyState == NX_KEYSTATE_DOWN) {
-                [center postNotificationName:MediaKeyPlayPauseNotification object:(__bridge id)refcon];
-                GKHotKey *key = [[GKHotKey alloc] initWithKeyCode:keyCode];
-                NSDictionary *dict = [[NSDictionary alloc] initWithObjectsAndKeys:key, @"key", nil];
-                [center postNotificationName:KeyboardKeyDownNotification object:(__bridge id)refcon userInfo:dict];
-            }
-            if(keyState == NX_KEYSTATE_UP || keyState == NX_KEYSTATE_DOWN)
-                return NULL; // to deactivate iTunes from receiving event
-            break;
-        case NX_KEYTYPE_FAST:
-            if(keyState == NX_KEYSTATE_DOWN) {
-                [center postNotificationName:MediaKeyNextNotification object:(__bridge id)refcon];
-                GKHotKey *key = [[GKHotKey alloc] initWithKeyCode:keyCode];
-                NSDictionary *dict = [[NSDictionary alloc] initWithObjectsAndKeys:key, @"key", nil];
-                [center postNotificationName:KeyboardKeyDownNotification object:(__bridge id)refcon userInfo:dict];
-            }
-            if(keyState == NX_KEYSTATE_UP || keyState == NX_KEYSTATE_DOWN)
-                return NULL;
-            break;
-        case NX_KEYTYPE_REWIND:
-            if(keyState == NX_KEYSTATE_DOWN) {
-                [center postNotificationName:MediaKeyPreviousNotification object:(__bridge id)refcon];
-                GKHotKey *key = [[GKHotKey alloc] initWithKeyCode:keyCode];
-                NSDictionary *dict = [[NSDictionary alloc] initWithObjectsAndKeys:key, @"key", nil];
-                [center postNotificationName:KeyboardKeyDownNotification object:(__bridge id)refcon userInfo:dict];
-            }
-            if(keyState == NX_KEYSTATE_UP || keyState == NX_KEYSTATE_DOWN)
-                return NULL;
-            break;
+    BOOL handled = NO;
+    // activate all handlers registered
+#ifdef BLOCKOBJ
+    for (GKBlockObject *obj in [[GKHotKeyCenter sharedCenter] handlers]) {
+#else
+    for (id func in [[GKHotKeyCenter sharedCenter] handlers]) {
+        BOOL (^block)(GKHotKey*, int) = func;
+#endif
+        
+        // init block arguments
+        GKHotKey *key = [[GKHotKey alloc] initWithKeyCode:keyCode modifierFlags:keyFlags];
+        int state = keyState == NX_KEYSTATE_UP;
+        
+        // activate block handler
+#ifdef BLOCKOBJ
+        if (obj.block(key, state)) {
+#else
+        if (block(key, state)) {
+#endif
+            // event was handled
+            handled = YES;
+        }
+#ifdef BLOCKOBJ
+        obj.handle = handled;
+#endif
     }
-    
-    if(keyState == NX_KEYSTATE_DOWN) {
-        /*GKHotKey *key = [[GKHotKey alloc] init];
-         DLogINT(keyFlags);
-         DLogINT(keyCode);
-         NSNumber *code = [NSNumber numberWithUnsignedShort:keyCode];
-         NSNumber *mods = [NSNumber numberWithUnsignedInteger:keyFlags];
-         key.key = code;
-         key.modifierKey = mods;
-         DLogObject(code);
-         DLogObject(mods);
-         DLogObject(key);
-         GKHotKey *key2 = [[GKHotKey alloc] initWithKeyCode:keyCode];
-         DLogObject(key2);*/
-        NSValue *wrapVal = [NSNumber numberWithInteger:keyCode];
-        NSDictionary *dict = [[NSDictionary alloc] initWithObjectsAndKeys:wrapVal, @"keycode", nil];
-        [center postNotificationName:KeyboardKeyDownNotification object:(__bridge id)refcon userInfo:dict];
-    }
-    
-    if(keyState == NX_KEYSTATE_UP) {
-        NSValue *wrapVal = [NSNumber numberWithInteger:keyCode];
-        NSDictionary *dict = [[NSDictionary alloc] initWithObjectsAndKeys:wrapVal, @"keycode", nil];
-        [center postNotificationName:KeyboardKeyUpNotification object:(__bridge id)refcon userInfo:dict];
-    }
-    
-    return event;
+    return handled ? NULL : event;
 }
 
 @implementation GKHotKeyCenter
 
 MAKE_SINGLETON(GKHotKeyCenter, sharedCenter)
 
++ (void)registerHandler:(GKHotKeyBlock)block {
+    GKHotKeyCenter *center = [GKHotKeyCenter sharedCenter];
+    BOOL exists = NO;
+#ifdef BLOCKOBJ
+    for (GKBlockObject *obj in [self handlers]) {
+        if ([obj.block isEqual:block]) {
+            exists = YES;
+            break;
+        }
+    }
+    if (!exists) {
+        GKBlockObject *obj = [[GKBlockObject alloc] init];
+        obj.block = [block copy];
+        obj.handle = NO;
+        [[self handlers] addObject:obj];
+    }
+#else
+    for (id func in [center handlers]) {
+        if ([func isEqual:block]) {
+            exists = YES;
+            break;
+        }
+    }
+    if (!exists) {
+        [[center handlers] addObject:block];
+    }
+#endif
+}
+
++ (void)unregisterHandler:(GKHotKeyBlock)block {
+    GKHotKeyCenter *center = [GKHotKeyCenter sharedCenter];
+#ifdef BLOCKOBJ
+    for (GKBlockObject *obj in [[GKHotKeyCenter sharedCenter] handlers]) {
+        if ([obj.block isEqual:block]) {
+            [[[GKHotKeyCenter sharedCenter] handlers] removeObject:obj];
+            return;
+        }
+    }
+#else
+    for (id func in [center handlers]) {
+        if ([func isEqual:block]) {
+            [[center handlers] removeObject:block];
+            return;
+        }
+    }
+#endif
+}
+
 - (id)init {
     if(self = [super init]) {
         CFRunLoopRef runLoop;
         CFRunLoopSourceRef runLoopSource;
+        
+        _handlers = [[NSMutableArray alloc] initWithCapacity:1];
 
         _eventPort = CGEventTapCreate(kCGSessionEventTap,
                                       kCGHeadInsertEventTap,
                                       kCGEventTapOptionDefault,
-                                      CGEventMaskBit(NX_SYSDEFINED),
+                                      CGEventMaskBit(NX_SYSDEFINED) | kCGEventKeyDown | kCGEventKeyUp | kCGEventFlagsChanged,
                                       tapEventCallback,
                                       (__bridge void *)(self));
-
-        if(_eventPort == NULL) {
-            NSLog(@"[%s:%d] ERROR: CGEventTapRef could not be created", __PRETTY_FUNCTION__, __LINE__);
+#ifndef USE_EVENTBLOCK
+        [NSEvent addGlobalMonitorForEventsMatchingMask:(NSKeyDownMask) handler:^(NSEvent *e){
+            NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+            GKHotKey *key = [[GKHotKey alloc] initWithEvent:e];
+            NSDictionary *dict = [[NSDictionary alloc] initWithObjectsAndKeys:key, @"key", nil];
+            [center postNotificationName:KeyboardKeyDownNotification object:self userInfo:dict];
+        }];
+#endif
+   
+        if(_eventPort  == NULL) {
+            NSLog(@"[%s:%d] ERROCGEventTapRefort could not be created", __PRETTY_FUNCTION__, __LINE__);
             return nil;
         }
 
@@ -151,7 +195,7 @@ MAKE_SINGLETON(GKHotKeyCenter, sharedCenter)
 
         if(runLoopSource == NULL) {
             NSLog(@"[%s:%d] ERROR: CFRunLoopSourceRef could not be created", __PRETTY_FUNCTION__, __LINE__);
-            return nil;
+//            return nil;   
         }
 
         runLoop = CFRunLoopGetCurrent();
@@ -171,6 +215,10 @@ MAKE_SINGLETON(GKHotKeyCenter, sharedCenter)
     return _eventPort;
 }
 
+ - (NSMutableArray*)handlers {
+     return _handlers;
+ }
+     
 - (void)dealloc {
     CFRelease(_eventPort);
 }

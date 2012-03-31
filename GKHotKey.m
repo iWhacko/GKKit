@@ -166,7 +166,7 @@
     if ((self = [super init])) {
         self.keyCode = theEvent.keyCode;
         self.modifierFlags = theEvent.modifierFlags;
-        if ([theEvent respondsToSelector:@selector(charactersIgnoringModifiers)])
+        if ([theEvent type] == NSKeyUp || [theEvent type] == NSKeyDown)
             self.keyTrigger = theEvent.charactersIgnoringModifiers;
     }
     return self;
@@ -208,6 +208,23 @@
         self.modifierKey = [coder decodeObjectForKey:@"modifierKey"];
     }
     return self; 
+}
+
+#pragma mark - NSObject subclassing
+
+- (NSUInteger)hash {
+    NSString *hash = [NSString stringWithFormat:@"%@%i%i%i%i", 
+                      self.key, self.hasShiftKey, self.hasControlKey, 
+                      self.hasAlternateKey, self.hasCommandKey, nil];
+    return [[[[NSNumberFormatter alloc] init] numberFromString:hash] unsignedIntegerValue];
+}
+
+- (BOOL)isEqual:(GKHotKey*)object {
+    return ([object.key isEqualToNumber:self.key] 
+            && object.hasShiftKey == self.hasShiftKey
+            && object.hasControlKey == self.hasControlKey
+            && object.hasAlternateKey == self.hasAlternateKey
+            && object.hasCommandKey == self.hasCommandKey);
 }
 
 #pragma mark - NSObject String Representations
@@ -310,25 +327,21 @@
 #pragma mark - Media Key Detection
 
 - (BOOL)isPlayKey {
-    return self.keyCode == NX_KEYTYPE_PLAY
-        && self.modifierFlags == 0;
+    return self.keyCode == NX_KEYTYPE_PLAY;
 }
 
 - (BOOL)isNextKey {
-    return self.keyCode == NX_KEYTYPE_FAST
-        && self.modifierFlags == 0;
+    return self.keyCode == NX_KEYTYPE_FAST;
 }
 
 - (BOOL)isBackKey {
-    return self.keyCode == NX_KEYTYPE_REWIND
-        && self.modifierFlags == 0;
+    return self.keyCode == NX_KEYTYPE_REWIND;
 }
 
 - (BOOL)hasMediaKey {
-    return (self.keyCode == NX_KEYTYPE_PLAY 
-         || self.keyCode == NX_KEYTYPE_FAST 
-         || self.keyCode == NX_KEYTYPE_REWIND )
-         && self.modifierFlags == 0;
+    return self.keyCode == NX_KEYTYPE_PLAY 
+           || self.keyCode == NX_KEYTYPE_FAST 
+           || self.keyCode == NX_KEYTYPE_REWIND;
 }
 
 @end

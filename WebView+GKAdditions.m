@@ -9,20 +9,39 @@
 
 @implementation WebView (Additions)
 
+- (void)keyClickWithKeyCode:(unsigned short)keyCode modifier:(unsigned short)mod {
+    NSEvent *fakeClickDown = [NSEvent keyEventWithType:NSKeyDown keyCode:keyCode modifiers:0];
+    NSEvent *fakeClickUp = [NSEvent keyEventWithType:NSKeyUp keyCode:keyCode modifiers:0];
+    
+    NSView *respondingView = [self hitTest:NSMakePoint(300.0, 300.0)];
+    
+    //[self dump];
+    
+    //DLogObject(respondingView);
+    
+    if([respondingView isMemberOfClass:NSClassFromString(@"WebHTMLView")])
+        respondingView = [(WebHTMLView*)respondingView _hitViewForEvent:fakeClickDown];
+    
+    //DLogObject(respondingView);
+    
+    [respondingView keyDown:fakeClickDown];
+    [respondingView keyUp:fakeClickUp];
+}
+
 - (void)keyClickWithKeyCode:(unsigned short)keyCode {
     NSEvent *fakeClickDown = [NSEvent keyEventWithType:NSKeyDown keyCode:keyCode];
     NSEvent *fakeClickUp = [NSEvent keyEventWithType:NSKeyUp keyCode:keyCode];
     
     NSView *respondingView = [self hitTest:NSMakePoint(300.0, 300.0)];
     
-    [self dump];
+    //[self dump];
     
-    DLogObject(respondingView);
+    //DLogObject(respondingView);
     
     if([respondingView isMemberOfClass:NSClassFromString(@"WebHTMLView")])
         respondingView = [(WebHTMLView*)respondingView _hitViewForEvent:fakeClickDown];
         
-    DLogObject(respondingView);
+    //DLogObject(respondingView);
     
     [respondingView keyDown:fakeClickDown];
     [respondingView keyUp:fakeClickUp];
