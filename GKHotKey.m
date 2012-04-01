@@ -183,6 +183,11 @@
     if ((self = [super init])) {
         self.keyCode = code;
         self.modifierFlags = flags;
+        /*if (!self.hasShiftKey 
+            && !self.hasControlKey 
+            && !self.hasControlKey 
+            && !self.hasCommandKey) 
+            return nil;*/
     }
     return self;
 }

@@ -7,6 +7,7 @@
 
 #import <Cocoa/Cocoa.h>
 #import "GKHotKey.h"
+#import "GKHotKeyCenter.h"
 
 extern NSString * const GKHotKeyViewChangeNotification;
 

@@ -29,6 +29,9 @@
 #import "singleton.h"
 #import "GKHotKey.h"
 
+extern NSString * const KeyboardKeyDownNotification;
+extern NSString * const KeyboardKeyUpNotification;
+
 @class GKHotKey;
 
 @interface GKHotKeyCenter : NSObject {
