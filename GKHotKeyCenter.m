@@ -33,18 +33,6 @@ NSString * const KeyboardKeyUpNotification = @"KeyboardKeyUpNotification";
 #define NX_KEYSTATE_UP      0x0A
 #define NX_KEYSTATE_DOWN    0x0B
 
-#ifdef BLOCKOBJ
-@interface GKBlockObject : NSObject
-@property (nonatomic, strong) GKHotKeyBlock block;
-@property (nonatomic, assign, getter=handled) BOOL handle;
-@end
-
-@implementation GKBlockObject
-@synthesize block;
-@synthesize handle;
-@end
-#endif 
-
 @interface GKHotKeyCenter (PRIVATE)
 
 - (CFMachPortRef)eventPort;
@@ -57,57 +45,86 @@ CGEventRef tapEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef 
         CGEventTapEnable([[GKHotKeyCenter sharedCenter] eventPort], TRUE);
         return event;
     }
-    
-    if(type != NX_SYSDEFINED) {
-        return event;
-    }
-    
-	NSEvent *nsEvent = [NSEvent eventWithCGEvent:event];
-    
-    if(nsEvent.subtype != 8)
-        return event;
-    
-    // CGEventGetFlags
-    // CGEventKeyboardGetUnicodeString
-    // CGEventGetDoubleValueField(event, kCGMouseEventSubtype);
-    
-    int data = [nsEvent data1];
-    int keyFlags = (data & 0xFFFF);
-    int keyCode = (data & 0xFFFF0000) >> 16;
-    int keyState = (keyFlags & 0xFF00) >> 8;
-    BOOL keyIsRepeat = (keyFlags & 0x1) > 0;
-    
-    if(keyIsRepeat) 
-        return event;
-    // filter useless events
-    if (keyState != NX_KEYSTATE_DOWN && keyState != NX_KEYSTATE_UP)
-        return event;
-    
+
+    GKHotKey *key;
+    BOOL state;
     BOOL handled = NO;
+    
+    if (type == kCGEventKeyUp || type == kCGEventKeyDown) {
+        CGEventFlags flags = CGEventGetFlags(event);
+        int64_t keycode = CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode);
+        
+        DLogObject(key);
+        
+        BOOL sh = (flags & kCGEventFlagMaskShift) != 0;
+        BOOL co = (flags & kCGEventFlagMaskControl) != 0;
+        BOOL cm = (flags & kCGEventFlagMaskCommand) != 0;
+        BOOL al = (flags & kCGEventFlagMaskAlternate) != 0;
+        
+        if (!sh && !co && !cm && !al)
+            return event;
+        
+        key = [[GKHotKey alloc] initWithKeyCode:keycode modifierFlags:1];
+        key.shiftKey = sh;
+        key.controlKey = co;
+        key.commandKey = cm;
+        key.alternateKey = al;
+        
+        DLogFunc();
+        
+        //key.shiftKey = flags & kCGEventFlagMaskShift;
+        //key.controlKey = flags & kCGEventFlagMaskControl;
+        //key.commandKey = flags & kCGEventFlagMaskCommand;
+        //key.alternateKey = flags & kCGEventFlagMaskAlternate;
+        //DLogObject(key);
+        
+        //DLogBOOL([key isPlayKey]);
+        //DLogBOOL([key isNextKey]);
+        //DLogBOOL([key hasShiftKey]);
+        //DLogBOOL([key hasAlternateKey]);
+        //DLogBOOL([key hasControlKey]);
+        //DLogBOOL([key hasCommandKey]);
+        
+        state = type == kCGEventKeyUp;
+    } else if(type == NX_SYSDEFINED) {
+        NSEvent *nsEvent = [NSEvent eventWithCGEvent:event];
+        
+        if(nsEvent.subtype != 8)
+            return event;
+        
+        // CGEventGetFlags
+        // CGEventKeyboardGetUnicodeString
+        // CGEventGetDoubleValueField(event, kCGMouseEventSubtype);
+        
+        int data = [nsEvent data1];
+        int keyFlags = (data & 0xFFFF);
+        int keyCode = (data & 0xFFFF0000) >> 16;
+        int keyState = (keyFlags & 0xFF00) >> 8;
+        BOOL keyIsRepeat = (keyFlags & 0x1) > 0;
+        
+        if(keyIsRepeat) 
+            return event;
+        
+        // filter useless events
+        if (keyState != NX_KEYSTATE_DOWN && keyState != NX_KEYSTATE_UP)
+            return event;
+        
+        key = [[GKHotKey alloc] initWithKeyCode:keyCode];
+        state = keyState == NX_KEYSTATE_UP;
+        
+    } else
+        return event;
+    
+    NSDictionary *dict = [[NSDictionary alloc] initWithObjectsAndKeys:key, @"key", nil];
+    [NSNtf postNotificationName:KeyboardKeyDownNotification object:(__bridge id)refcon userInfo:dict];
+    
     // activate all handlers registered
-#ifdef BLOCKOBJ
-    for (GKBlockObject *obj in [[GKHotKeyCenter sharedCenter] handlers]) {
-#else
     for (id func in [[GKHotKeyCenter sharedCenter] handlers]) {
         BOOL (^block)(GKHotKey*, int) = func;
-#endif
-        
-        // init block arguments
-        GKHotKey *key = [[GKHotKey alloc] initWithKeyCode:keyCode modifierFlags:keyFlags];
-        int state = keyState == NX_KEYSTATE_UP;
-        
-        // activate block handler
-#ifdef BLOCKOBJ
-        if (obj.block(key, state)) {
-#else
         if (block(key, state)) {
-#endif
             // event was handled
             handled = YES;
         }
-#ifdef BLOCKOBJ
-        obj.handle = handled;
-#endif
     }
     return handled ? NULL : event;
 }
@@ -118,50 +135,19 @@ MAKE_SINGLETON(GKHotKeyCenter, sharedCenter)
 
 + (void)registerHandler:(GKHotKeyBlock)block {
     GKHotKeyCenter *center = [GKHotKeyCenter sharedCenter];
-    BOOL exists = NO;
-#ifdef BLOCKOBJ
-    for (GKBlockObject *obj in [self handlers]) {
-        if ([obj.block isEqual:block]) {
-            exists = YES;
-            break;
-        }
-    }
-    if (!exists) {
-        GKBlockObject *obj = [[GKBlockObject alloc] init];
-        obj.block = [block copy];
-        obj.handle = NO;
-        [[self handlers] addObject:obj];
-    }
-#else
-    for (id func in [center handlers]) {
-        if ([func isEqual:block]) {
-            exists = YES;
-            break;
-        }
-    }
-    if (!exists) {
+    if (![[center handlers] containsObject:block]) {
         [[center handlers] addObject:block];
     }
-#endif
 }
 
 + (void)unregisterHandler:(GKHotKeyBlock)block {
     GKHotKeyCenter *center = [GKHotKeyCenter sharedCenter];
-#ifdef BLOCKOBJ
-    for (GKBlockObject *obj in [[GKHotKeyCenter sharedCenter] handlers]) {
-        if ([obj.block isEqual:block]) {
-            [[[GKHotKeyCenter sharedCenter] handlers] removeObject:obj];
-            return;
-        }
-    }
-#else
     for (id func in [center handlers]) {
         if ([func isEqual:block]) {
             [[center handlers] removeObject:block];
             return;
         }
     }
-#endif
 }
 
 - (id)init {
@@ -174,18 +160,12 @@ MAKE_SINGLETON(GKHotKeyCenter, sharedCenter)
         _eventPort = CGEventTapCreate(kCGSessionEventTap,
                                       kCGHeadInsertEventTap,
                                       kCGEventTapOptionDefault,
-                                      CGEventMaskBit(NX_SYSDEFINED) | kCGEventKeyDown | kCGEventKeyUp | kCGEventFlagsChanged,
+                                      CGEventMaskBit(NX_SYSDEFINED) 
+                                      | CGEventMaskBit(kCGEventKeyDown)
+                                      | CGEventMaskBit(kCGEventKeyUp),
                                       tapEventCallback,
                                       (__bridge void *)(self));
-#ifndef USE_EVENTBLOCK
-        [NSEvent addGlobalMonitorForEventsMatchingMask:(NSKeyDownMask) handler:^(NSEvent *e){
-            NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
-            GKHotKey *key = [[GKHotKey alloc] initWithEvent:e];
-            NSDictionary *dict = [[NSDictionary alloc] initWithObjectsAndKeys:key, @"key", nil];
-            [center postNotificationName:KeyboardKeyDownNotification object:self userInfo:dict];
-        }];
-#endif
-   
+        
         if(_eventPort  == NULL) {
             NSLog(@"[%s:%d] ERROCGEventTapRefort could not be created", __PRETTY_FUNCTION__, __LINE__);
             return nil;

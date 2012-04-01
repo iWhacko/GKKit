@@ -26,9 +26,8 @@ NSString * const GKHotKeyViewChangeNotification = @"GKHotKeyViewChangeNotificati
         _hasFocus = NO;
         
         [self addObserver:self forKeyPath:@"hotkey" options:NSKeyValueObservingOptionNew context:NULL];
-        
-        NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
-        [center addObserver:self selector:@selector(keyDownNotification:) name:@"KeyboardKeyDownNotification" object:nil];
+
+        [NSNtf addObserver:self selector:@selector(keyDownNotification:) name:KeyboardKeyDownNotification object:nil];
     }
     return self;
 }
@@ -43,8 +42,7 @@ NSString * const GKHotKeyViewChangeNotification = @"GKHotKeyViewChangeNotificati
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
     if ([keyPath isEqualToString:@"hotkey"]) {
         [self setNeedsDisplay:YES];
-        NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
-        [center postNotificationName:GKHotKeyViewChangeNotification object:self];
+        [NSNtf postNotificationName:GKHotKeyViewChangeNotification object:self];
     } else {
         [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
     }
@@ -69,7 +67,7 @@ NSString * const GKHotKeyViewChangeNotification = @"GKHotKeyViewChangeNotificati
 
 - (void)dealloc {
     [self removeObserver:self forKeyPath:@"hotkey"];
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    [NSNtf removeObserver:self];
 }
 
 #pragma mark - NSObject event behavior
