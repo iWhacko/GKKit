@@ -50,7 +50,7 @@
     #elif IPHONE_ONLY
         #import <QuartzCore/QuartzCore.h>
         #define GKApp [UIApplication sharedApplication]
-        #define GKAppDelegate ((APP_DEL_CLS)[UIApp delegate])
+        #define GKAppDelegate ((APP_DEL_CLS)[[UIApplication sharedApplication] delegate])
         #define GKRect CGRect
         #define GKView UIView
         #define GKWindow UIWindow

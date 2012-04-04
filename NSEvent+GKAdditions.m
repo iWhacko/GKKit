@@ -5,6 +5,8 @@
 //  Created by Gaurav Khanna on 8/17/10.
 //
 
+#if MAC_ONLY
+
 #import "NSEvent+GKAdditions.h"
 
 @implementation NSEvent (Additions)
@@ -58,3 +60,5 @@
 }
 
 @end
+
+#endif
