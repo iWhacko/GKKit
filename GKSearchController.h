@@ -35,7 +35,6 @@ typedef enum {
 
 @end
 
-
 @interface GKSearchController : NSObject <UISearchDisplayDelegate, UISearchBarDelegate> {
 @private
     UIActivityIndicatorView *_activityView;
