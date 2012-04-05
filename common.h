@@ -56,9 +56,9 @@
         #define GKWindow UIWindow
 
         #define UIViewFrameChangeValue( view, key, value) \
-            CGRect view ## Frame = view.frame; \
-            view ## Frame.key = value; \
-            [view setFrame:view ## Frame]
+            CGRect __randFrame = (CGRect)[(view) frame]; \
+            (__randFrame).key = value; \
+            [view setFrame:(__randFrame)]
 
         #define CGRectRoundFrameValues( frame) \
             CGRectMake( roundf(frame.origin.x), roundf(frame.origin.y), roundf(frame.size.width), roundf(frame.size.height))

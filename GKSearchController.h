@@ -30,20 +30,18 @@ typedef enum {
 } GKSearchDisplayState;
 
 @protocol GKSearchControllerDelegate
-
+@required
 - (void)searchController:(GKSearchController *)controller shouldStartSearch:(NSString *)searchText;
-
 @end
 
-@interface GKSearchController : NSObject <UISearchDisplayDelegate, UISearchBarDelegate> {
-@private
-    UIActivityIndicatorView *_activityView;
-    UIView *_searchLoadingView;
-}
+@interface GKSearchController : NSObject <UISearchDisplayDelegate, UISearchBarDelegate>
 
-@property (nonatomic, weak) id<GKSearchControllerDelegate> delegate;
-@property (nonatomic, weak) UISearchDisplayController *searchDisplayController;
-@property (nonatomic, weak) UIView *view;
+@property (nonatomic, strong) UIView *loadingView;
+@property (nonatomic, strong) UIActivityIndicatorView *activityView;
+
+@property (nonatomic, weak, readonly) UIView *delegateView;
+@property (nonatomic, weak, readonly) id<GKSearchControllerDelegate> delegate;
+@property (nonatomic, weak, readonly) UISearchDisplayController *searchDisplayController;
 
 - (id)initWithSearchDisplayController:(UISearchDisplayController *)controller;
 - (void)readyToDisplayResults;
