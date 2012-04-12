@@ -40,6 +40,8 @@ extern NSString * const KeyboardKeyUpNotification;
     NSMutableArray *_handlers;
 }
 
+@property (nonatomic, assign, getter=isEnabled) BOOL enabled;
+
 + (id)sharedCenter;
 
 #if NS_BLOCKS_AVAILABLE

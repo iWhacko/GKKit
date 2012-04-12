@@ -26,7 +26,7 @@ NSString * const GKHotKeyViewChangeNotification = @"GKHotKeyViewChangeNotificati
         _hasFocus = NO;
         
         [self addObserver:self forKeyPath:@"hotkey" options:NSKeyValueObservingOptionNew context:NULL];
-
+        [NSNtf addObserver:self selector:@selector(viewKeyChange:) name:GKHotKeyViewChangeNotification object:nil];
         [NSNtf addObserver:self selector:@selector(keyDownNotification:) name:KeyboardKeyDownNotification object:nil];
     }
     return self;
@@ -65,6 +65,19 @@ NSString * const GKHotKeyViewChangeNotification = @"GKHotKeyViewChangeNotificati
     DLogObject(self.hotkey);
 }
 
+- (void)viewKeyChange:(NSNotification*)notif {
+    if (notif.object == self)
+        return;
+    if ([[notif.object hotkey] isEqual:self.hotkey]) {
+        self.hotkey = nil;
+    }
+    DLogObject(notif.object);
+    DLogObject(self);
+    /*if ([ isEqual:self.hotkey] && ![notif.object isEqual:self]) {
+        _hotkey = nil;
+    }*/
+}
+
 - (void)dealloc {
     [self removeObserver:self forKeyPath:@"hotkey"];
     [NSNtf removeObserver:self];
@@ -81,6 +94,7 @@ NSString * const GKHotKeyViewChangeNotification = @"GKHotKeyViewChangeNotificati
 }
 
 - (BOOL)becomeFirstResponder {
+    [[GKHotKeyCenter sharedCenter] setEnabled:NO];
     [self lockFocus];
     _hasFocus = YES;
     [self setNeedsDisplay:YES];
@@ -92,8 +106,10 @@ NSString * const GKHotKeyViewChangeNotification = @"GKHotKeyViewChangeNotificati
 
 - (BOOL)resignFirstResponder {
     //[self unlockFocus];
+
     _hasFocus = NO;
     [self setNeedsDisplay:YES];
+    [[GKHotKeyCenter sharedCenter] setEnabled:YES];
     return YES;
 }
 

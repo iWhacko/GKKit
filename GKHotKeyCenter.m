@@ -45,6 +45,9 @@ CGEventRef tapEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef 
         CGEventTapEnable([[GKHotKeyCenter sharedCenter] eventPort], TRUE);
         return event;
     }
+    
+    if (![[GKHotKeyCenter sharedCenter] isEnabled])
+        return event;
 
     GKHotKey *key;
     BOOL state;
@@ -131,6 +134,8 @@ CGEventRef tapEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef 
 
 @implementation GKHotKeyCenter
 
+@synthesize enabled;
+
 MAKE_SINGLETON(GKHotKeyCenter, sharedCenter)
 
 + (void)registerHandler:(GKHotKeyBlock)block {
@@ -152,6 +157,7 @@ MAKE_SINGLETON(GKHotKeyCenter, sharedCenter)
 
 - (id)init {
     if(self = [super init]) {
+        self.enabled = YES;
         CFRunLoopRef runLoop;
         CFRunLoopSourceRef runLoopSource;
         
