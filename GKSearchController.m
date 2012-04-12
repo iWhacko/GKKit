@@ -11,38 +11,40 @@
 
 @implementation GKSearchController
 
-@synthesize delegate;
-@synthesize view;
-@synthesize searchDisplayController;
+@synthesize loadingView;
+@synthesize activityView;
+@synthesize delegateView = _delegateView;
+@synthesize delegate = _delegate;
+@synthesize searchDisplayController = _searchDisplayController;
 
 #pragma mark - Instance Setup Methods
 
 - (id)initWithSearchDisplayController:(UISearchDisplayController *)controller {
     self = [super init];
     if (self) {
-        UIView *aBlankView = [[UIView alloc] initWithFrame:CGRectZero];
-        UIActivityIndicatorView *aActivityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+        self.loadingView = [[UIView alloc] initWithFrame:CGRectZero];
         
-        _searchLoadingView = aBlankView;
-        _activityView = aActivityIndicator;
-        _activityView.hidesWhenStopped = YES;
-        [_activityView stopAnimating];
-        [_searchLoadingView addSubview:_activityView];
+        UIActivityIndicatorView *indic = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+        indic.hidesWhenStopped = YES;
+        [indic stopAnimating];
+        self.activityView = indic;
+        
+        [self.loadingView addSubview:self.activityView];
 
         id controllerDelegate = (id<GKSearchControllerDelegate>)controller.delegate;
         if (controllerDelegate) {
-            self.delegate = controllerDelegate;
+            _delegate = controllerDelegate;
             // we have to fail if the auto chosen delegate isn't a viewController
             UIView *controllerDelegateView = [controllerDelegate view];
             if (controllerDelegateView)
-                self.view = controllerDelegateView;
+                _delegateView = controllerDelegateView;
             else
                 return nil;
         }
         
         controller.delegate = self;
         controller.searchBar.delegate = self;
-        self.searchDisplayController = controller;
+        _searchDisplayController = controller;
     }
     return self;
 }
@@ -50,15 +52,16 @@
 - (void)setSearchLoadingState:(GKSearchDisplayState)state {
     switch(state) {
         case GKSearchDisplayStateSearch:
-            [_activityView stopAnimating];
-            _searchLoadingView.backgroundColor = [UIColor colorWithWhite:0.0 alpha:0.8];
+            [self.activityView stopAnimating];
+            self.loadingView.backgroundColor = [UIColor colorWithWhite:0.0 alpha:0.8];
             break;
-        case GKSearchDisplayStateLoading:
-            _searchLoadingView.backgroundColor = [UIColor whiteColor];
-            _activityView.center = _searchLoadingView.center;
-            UIViewFrameChangeValue(_activityView, origin.y, 11.0);
-            [_activityView startAnimating];
+        case GKSearchDisplayStateLoading: {
+            self.loadingView.backgroundColor = self.delegateView.backgroundColor;
+            self.activityView.center = self.loadingView.center;
+            UIViewFrameChangeValue(self.activityView, origin.y, 11.0);
+            [self.activityView startAnimating];
             break;
+        }
     }
 }
 
@@ -66,7 +69,7 @@
 
 - (void)readyToDisplayResults {
     self.searchDisplayController.searchResultsTableView.hidden = FALSE;
-    [_searchLoadingView removeFromSuperview];
+    [self.loadingView removeFromSuperview];
 }
 
 - (void)search:(NSString *)searchText fromTableView:(UITableView *)tableView forIndexPath:(NSIndexPath *)indexPath animated:(BOOL)animated{
@@ -79,54 +82,55 @@
 
 #pragma mark - UISearchDisplayController Delegate Methods
 
-- (void)searchDisplayController:(UISearchDisplayController *)controller willShowSearchResultsTableView:(UITableView *)tableView {
-    tableView.hidden = YES;
-    [_searchLoadingView setFrame:( CGRectEqualToRect(tableView.frame, CGRectZero ) ? _searchLoadingView.frame : tableView.frame)];
-    [self setSearchLoadingState:GKSearchDisplayStateSearch];
-    [self.view addSubview:_searchLoadingView];
-}
-
-#ifdef DEBUG
-- (void)searchDisplayController:(UISearchDisplayController *)controller didShowSearchResultsTableView:(UITableView *)tableView {
-    
-}
-
 #pragma mark Begin / End Search
-
+#ifdef DEBUG
 - (void)searchDisplayControllerWillBeginSearch:(UISearchDisplayController *)controller {
-    
+    DLogFunc();
 }
 
 - (void)searchDisplayControllerDidBeginSearch:(UISearchDisplayController *)controller {
-    
+    DLogFunc();
 }
 
 - (void)searchDisplayControllerWillEndSearch:(UISearchDisplayController *)controller {
-    
+    DLogFunc();
 }
 
 - (void)searchDisplayControllerDidEndSearch:(UISearchDisplayController *)controller {
-    
+    DLogFunc();
 }
 
 #pragma mark Load / Unload Table View
 
 - (void)searchDisplayController:(UISearchDisplayController *)controller didLoadSearchResultsTableView:(UITableView *)tableView {
-    
+    DLogFunc();
+    DLogCGRect(tableView.frame);
 }
 
 - (void)searchDisplayController:(UISearchDisplayController *)controller willUnloadSearchResultsTableView:(UITableView *)tableView {
-    
+    DLogFunc();
 }
+#endif
 
 #pragma mark Hide Table view
 
+- (void)searchDisplayController:(UISearchDisplayController *)controller willShowSearchResultsTableView:(UITableView *)tableView {
+    tableView.hidden = YES;
+    [self setSearchLoadingState:GKSearchDisplayStateSearch];
+    [self.delegateView addSubview:self.loadingView];
+}
+
+- (void)searchDisplayController:(UISearchDisplayController *)controller didShowSearchResultsTableView:(UITableView *)tableView {
+    [self.loadingView setFrame:tableView.frame];
+}
+
+#ifdef DEBUG
 - (void)searchDisplayController:(UISearchDisplayController *)controller willHideSearchResultsTableView:(UITableView *)tableView {
-    
+    DLogFunc();
 }
 
 - (void)searchDisplayController:(UISearchDisplayController *)controller didHideSearchResultsTableView:(UITableView *)tableView {
-    
+    DLogFunc();
 }
 #endif
 
@@ -147,8 +151,8 @@
 }
 
 - (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar {
-    if(_searchLoadingView.superview) {
-        [_searchLoadingView removeFromSuperview];
+    if(self.loadingView.superview) {
+        [self.loadingView removeFromSuperview];
         [NSObject scheduleRunAfterDelay:1.0 forBlock:^{
             self.searchDisplayController.searchResultsTableView.hidden = NO;
         }];
@@ -157,22 +161,10 @@
 
 - (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText {
     if([searchText length] == 0)
-        _searchLoadingView.hidden = YES;
+        self.loadingView.hidden = YES;
     else
-        _searchLoadingView.hidden = NO;
+        self.loadingView.hidden = NO;
 }
-
-#pragma mark - Memory Management
-
-#if !OBJC_ARC
-- (void)dealloc {
-    [_searchLoadingView removeFromSuperview];
-    [_activityView removeFromSuperview];
-    [_searchLoadingView release];
-    [_activityView release];
-    [super dealloc];
-}
-#endif
 
 @end
 

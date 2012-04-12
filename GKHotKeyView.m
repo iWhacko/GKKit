@@ -6,6 +6,8 @@
 //  Copyright (c) 2010 GK Apps. All rights reserved.
 //
 
+#if MAC_ONLY
+
 #import "GKHotKeyView.h"
 
 NSString * const GKHotKeyViewChangeNotification = @"GKHotKeyViewChangeNotification";
@@ -267,3 +269,5 @@ NSString * const GKHotKeyViewChangeNotification = @"GKHotKeyViewChangeNotificati
 }
 
 @end
+
+#endif

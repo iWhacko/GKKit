@@ -50,15 +50,15 @@
     #elif IPHONE_ONLY
         #import <QuartzCore/QuartzCore.h>
         #define GKApp [UIApplication sharedApplication]
-        #define GKAppDelegate ((APP_DEL_CLS)[UIApp delegate])
+        #define GKAppDelegate ((APP_DEL_CLS)[[UIApplication sharedApplication] delegate])
         #define GKRect CGRect
         #define GKView UIView
         #define GKWindow UIWindow
 
         #define UIViewFrameChangeValue( view, key, value) \
-            CGRect view ## Frame = view.frame; \
-            view ## Frame.key = value; \
-            [view setFrame:view ## Frame]
+            CGRect __randFrame = (CGRect)[(view) frame]; \
+            (__randFrame).key = value; \
+            [view setFrame:(__randFrame)]
 
         #define CGRectRoundFrameValues( frame) \
             CGRectMake( roundf(frame.origin.x), roundf(frame.origin.y), roundf(frame.size.width), roundf(frame.size.height))

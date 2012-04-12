@@ -25,6 +25,8 @@
 //  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+#if MAC_ONLY
+
 #import "GKHotKeyCenter.h"
 
 NSString * const KeyboardKeyDownNotification = @"KeyboardKeyDownNotification";
@@ -210,3 +212,5 @@ MAKE_SINGLETON(GKHotKeyCenter, sharedCenter)
 }
 
 @end
+
+#endif
