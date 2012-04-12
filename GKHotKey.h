@@ -84,6 +84,4 @@
 
 @property (readonly, getter=hasMediaKey) BOOL mediaKey;
 
-
-
 @end

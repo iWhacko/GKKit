@@ -5,6 +5,8 @@
 //  Created by Gaurav Khanna on 8/16/10.
 //
 
+#if MAC_ONLY
+
 #import "WebView+GKAdditions.h"
 
 @implementation WebView (Additions)
@@ -127,5 +129,7 @@
 
 
 @end
+
+#endif
 
 #endif

@@ -6,6 +6,8 @@
 //  Copyright (c) 2010 GK Apps. All rights reserved.
 //
 
+#if MAC_ONLY
+
 #import "GKHotKey.h"
 
 @implementation GKHotKey
@@ -350,3 +352,5 @@
 }
 
 @end
+
+#endif

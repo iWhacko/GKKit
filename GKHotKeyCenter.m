@@ -25,6 +25,8 @@
 //  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+#if MAC_ONLY
+
 #import "GKHotKeyCenter.h"
 
 NSString * const KeyboardKeyDownNotification = @"KeyboardKeyDownNotification";
@@ -45,6 +47,9 @@ CGEventRef tapEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef 
         CGEventTapEnable([[GKHotKeyCenter sharedCenter] eventPort], TRUE);
         return event;
     }
+    
+    if (![[GKHotKeyCenter sharedCenter] isEnabled])
+        return event;
 
     GKHotKey *key;
     BOOL state;
@@ -131,6 +136,8 @@ CGEventRef tapEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef 
 
 @implementation GKHotKeyCenter
 
+@synthesize enabled;
+
 MAKE_SINGLETON(GKHotKeyCenter, sharedCenter)
 
 + (void)registerHandler:(GKHotKeyBlock)block {
@@ -152,6 +159,7 @@ MAKE_SINGLETON(GKHotKeyCenter, sharedCenter)
 
 - (id)init {
     if(self = [super init]) {
+        self.enabled = YES;
         CFRunLoopRef runLoop;
         CFRunLoopSourceRef runLoopSource;
         
@@ -204,3 +212,5 @@ MAKE_SINGLETON(GKHotKeyCenter, sharedCenter)
 }
 
 @end
+
+#endif
