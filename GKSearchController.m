@@ -41,7 +41,8 @@
             else
                 return nil;
         }
-        
+        //controller.searchResultsDataSource = (id<UITableViewDataSource>)controller.searchContentsController;  
+        //controller.searchResultsDelegate = (id<UITableViewDelegate>)controller.searchContentsController;
         controller.delegate = self;
         controller.searchBar.delegate = self;
         _searchDisplayController = controller;
@@ -56,7 +57,7 @@
             self.loadingView.backgroundColor = [UIColor colorWithWhite:0.0 alpha:0.8];
             break;
         case GKSearchDisplayStateLoading: {
-            self.loadingView.backgroundColor = self.delegateView.backgroundColor;
+            self.loadingView.backgroundColor = self.searchDisplayController.searchResultsTableView.backgroundColor;
             self.activityView.center = self.loadingView.center;
             UIViewFrameChangeValue(self.activityView, origin.y, 11.0);
             [self.activityView startAnimating];
