@@ -38,6 +38,7 @@ NSString * const KeyboardKeyUpNotification = @"KeyboardKeyUpNotification";
 @interface GKHotKeyCenter (PRIVATE)
 
 - (CFMachPortRef)eventPort;
+- (NSMutableArray*)keys;
 - (NSMutableArray*)handlers;
 
 @end
@@ -59,7 +60,8 @@ CGEventRef tapEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef 
         CGEventFlags flags = CGEventGetFlags(event);
         int64_t keycode = CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode);
         
-        DLogObject(key);
+        //DLogObject(key);
+        //DLogFunc();
         
         BOOL sh = (flags & kCGEventFlagMaskShift) != 0;
         BOOL co = (flags & kCGEventFlagMaskControl) != 0;
@@ -74,8 +76,6 @@ CGEventRef tapEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef 
         key.controlKey = co;
         key.commandKey = cm;
         key.alternateKey = al;
-        
-        DLogFunc();
         
         //key.shiftKey = flags & kCGEventFlagMaskShift;
         //key.controlKey = flags & kCGEventFlagMaskControl;
@@ -111,8 +111,13 @@ CGEventRef tapEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef 
             return event;
         
         // filter useless events
-        if (keyState != NX_KEYSTATE_DOWN && keyState != NX_KEYSTATE_UP)
+        if (keyState != NX_KEYSTATE_DOWN && keyState != NX_KEYSTATE_UP) {
             return event;
+        }
+        
+        if (keyCode != NX_KEYTYPE_PLAY && keyCode != NX_KEYTYPE_FAST && keyCode != NX_KEYTYPE_REWIND) {
+            return event;
+        }
         
         key = [[GKHotKey alloc] initWithKeyCode:keyCode];
         state = keyState == NX_KEYSTATE_UP;
@@ -122,6 +127,12 @@ CGEventRef tapEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef 
     
     NSDictionary *dict = [[NSDictionary alloc] initWithObjectsAndKeys:key, @"key", nil];
     [NSNtf postNotificationName:KeyboardKeyDownNotification object:(__bridge id)refcon userInfo:dict];
+    
+    // verify any need for running the handler
+    /*NSMutableArray *arr = [[GKHotKeyCenter sharedCenter] keys];
+    if (![arr containsObject:key]) {
+        return event;
+    }*/
     
     // activate all handlers registered
     for (id func in [[GKHotKeyCenter sharedCenter] handlers]) {
@@ -139,6 +150,13 @@ CGEventRef tapEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef 
 @synthesize enabled;
 
 MAKE_SINGLETON(GKHotKeyCenter, sharedCenter)
+
++ (void)registerKey:(GKHotKey *)key {
+    GKHotKeyCenter *center = [GKHotKeyCenter sharedCenter];
+    if (![[center keys] containsObject:key]) {
+        [[center keys] addObject:key];
+    }
+}
 
 + (void)registerHandler:(GKHotKeyBlock)block {
     GKHotKeyCenter *center = [GKHotKeyCenter sharedCenter];
@@ -163,6 +181,7 @@ MAKE_SINGLETON(GKHotKeyCenter, sharedCenter)
         CFRunLoopRef runLoop;
         CFRunLoopSourceRef runLoopSource;
         
+        _keys = [[NSMutableArray alloc] initWithCapacity:0];
         _handlers = [[NSMutableArray alloc] initWithCapacity:1];
 
         _eventPort = CGEventTapCreate(kCGSessionEventTap,
@@ -203,9 +222,13 @@ MAKE_SINGLETON(GKHotKeyCenter, sharedCenter)
     return _eventPort;
 }
 
- - (NSMutableArray*)handlers {
-     return _handlers;
- }
+- (NSMutableArray*)keys {
+    return _keys;
+}
+
+- (NSMutableArray*)handlers {
+    return _handlers;
+}
      
 - (void)dealloc {
     CFRelease(_eventPort);

@@ -63,8 +63,9 @@ NSString * const GKHotKeyViewChangeNotification = @"GKHotKeyViewChangeNotificati
     if(!_hasFocus)
         return;
     self.hotkey = key;
-    DLogFunc();
-    DLogObject(self.hotkey);
+    // TODO: add debugging nslog stmts
+    //DLogFunc();
+    //DLogObject(self.hotkey);
 }
 
 - (void)viewKeyChange:(NSNotification*)notif {
@@ -73,8 +74,9 @@ NSString * const GKHotKeyViewChangeNotification = @"GKHotKeyViewChangeNotificati
     if ([[notif.object hotkey] isEqual:self.hotkey]) {
         self.hotkey = nil;
     }
-    DLogObject(notif.object);
-    DLogObject(self);
+    // TODO: add debugging nslog stmts
+    //DLogObject(notif.object);
+    //DLogObject(self);
     /*if ([ isEqual:self.hotkey] && ![notif.object isEqual:self]) {
         _hotkey = nil;
     }*/
@@ -141,16 +143,17 @@ NSString * const GKHotKeyViewChangeNotification = @"GKHotKeyViewChangeNotificati
 #define NX_KEYTYPE_ESCAPE 53
 
 - (BOOL)performKeyEquivalent:(NSEvent *)theEvent {
-    DLogFunc();
-    DLogObject(theEvent);
+    // TODO: Add debug nslog stmts
+    //DLogFunc();
+    //DLogObject(theEvent);
     unsigned short code = theEvent.keyCode;
     if(_hasFocus && (code == NX_KEYTYPE_DELETE || code == NX_KEYTYPE_ESCAPE)) {
         self.hotkey = nil;
         return YES;
     } else if(_hasFocus && [GKHotKey validEvent:theEvent]) {
         self.hotkey = [[GKHotKey alloc] initWithEvent:theEvent];
-        DLogFunc();
-        DLogObject(self.hotkey);
+        //DLogFunc();
+        //DLogObject(self.hotkey);
         return YES;
     } else
         return [super performKeyEquivalent:theEvent];
