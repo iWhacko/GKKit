@@ -37,12 +37,14 @@ extern NSString * const KeyboardKeyUpNotification;
 @interface GKHotKeyCenter : NSObject {
 @private
     CFMachPortRef _eventPort;
+    NSMutableArray *_keys;
     NSMutableArray *_handlers;
 }
 
 @property (nonatomic, assign, getter=isEnabled) BOOL enabled;
 
 + (id)sharedCenter;
++ (void)registerKey:(GKHotKey*)key;
 
 #if NS_BLOCKS_AVAILABLE
 // return YES if event should be trapped
