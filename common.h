@@ -44,8 +44,8 @@
     #endif
 
     #ifdef MAC_ONLY
-        #define GKApp ([NSApplication sharedApplication])
-        #define GKAppDelegate ((APP_DEL_CLS)[[NSApplication sharedApplication] delegate])
+        #define GKApp [NSApplication sharedApplication]
+        #define GKAppDelegate (APP_DEL_CLS)[[NSApplication sharedApplication] delegate]
         #define GKRect NSRect
         #define GKView NSView
         #define GKWindow NSWindow
