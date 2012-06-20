@@ -22,6 +22,7 @@
     #define NSDefObj(key) ([NSKeyedUnarchiver unarchiveObjectWithData:[[NSUserDefaults standardUserDefaults] objectForKey:key]]);
     #define $(class) objc_getClass(#class)
     #define OBJC_ARC __has_feature(objc_arc)
+    
     /*#if OBJC_ARC
         #define retain strong
         #define assign weak
@@ -29,6 +30,8 @@
         #define strong retain
         #define weak assign
     #endif*/
+
+//#define NSSizeToCGSize(size) CGSizeMake(size.width,size.height)
 
     #if TARGET_OS_MAC && !(TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR)
         #define MAC_ONLY 1
@@ -46,6 +49,7 @@
         #define GKRect NSRect
         #define GKView NSView
         #define GKWindow NSWindow
+        #define GKSizeMake(w, h) (NSSize){w, h}
 
     #elif IPHONE_ONLY
         #import <QuartzCore/QuartzCore.h>
