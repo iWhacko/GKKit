@@ -101,11 +101,13 @@ CGEventRef tapEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef 
         // CGEventKeyboardGetUnicodeString
         // CGEventGetDoubleValueField(event, kCGMouseEventSubtype);
 
-        int data = [nsEvent data1];
+        NSInteger data = [nsEvent data1];
         int keyFlags = (data & 0xFFFF);
         int keyCode = (data & 0xFFFF0000) >> 16;
         int keyState = (keyFlags & 0xFF00) >> 8;
         BOOL keyIsRepeat = (keyFlags & 0x1) > 0;
+        
+        NSLog(@" some junk %i", keyCode);
 
         if(keyIsRepeat)
             return event;
@@ -209,6 +211,7 @@ MAKE_SINGLETON(GKHotKeyCenter, sharedCenter)
 
         if(runLoop == NULL) {
             NSLog(@"[%s:%d] ERROR: Could not get the current threads CFRunLoopRef", __PRETTY_FUNCTION__, __LINE__);
+            CFRelease(runLoopSource);
             return nil;
         }
 

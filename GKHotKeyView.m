@@ -30,6 +30,7 @@ NSString * const GKHotKeyViewChangeNotification = @"GKHotKeyViewChangeNotificati
         [self addObserver:self forKeyPath:@"hotkey" options:NSKeyValueObservingOptionNew context:NULL];
         [NSNtf addObserver:self selector:@selector(viewKeyChange:) name:GKHotKeyViewChangeNotification object:nil];
         [NSNtf addObserver:self selector:@selector(keyDownNotification:) name:KeyboardKeyDownNotification object:nil];
+        [NSNtf addObserver:self selector:@selector(windowCloseNotification:) name:NSWindowWillCloseNotification object:nil];
     }
     return self;
 }
@@ -47,6 +48,13 @@ NSString * const GKHotKeyViewChangeNotification = @"GKHotKeyViewChangeNotificati
         [NSNtf postNotificationName:GKHotKeyViewChangeNotification object:self];
     } else {
         [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
+    }
+}
+
+- (void)windowCloseNotification:(NSNotification*)notif {
+    if ([[notif object] isEqual:self.window]) {
+        NSLog(@" some straight crap");
+        [self resignFirstResponder];
     }
 }
 

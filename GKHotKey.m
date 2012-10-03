@@ -237,7 +237,7 @@
 #pragma mark - NSObject String Representations
 
 - (NSString *)description {
-    return [NSString stringWithFormat:@"%@; key:%@(%@); mods:%i%@(%@%@%@%@)", 
+    return [NSString stringWithFormat:@"%@; key:%@(%@); mods:%@(%@%@%@%@)",
             [super description], self.key, self.keyTrigger,
             [NSNumber numberWithUnsignedInteger:self.modifierFlags],
             (self.hasShiftKey ? @"⇧" : @""), 
