@@ -125,7 +125,7 @@ CGEventRef tapEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef 
     } else
         return event;
 
-    NSDictionary *dict = [[NSDictionary alloc] initWithObjectsAndKeys:key, @"key", nil];
+    NSDictionary *dict = @{@"key": key};
     [NSNtf postNotificationName:KeyboardKeyDownNotification object:(__bridge id)refcon userInfo:dict];
 
     // verify any need for running the handler

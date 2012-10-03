@@ -60,10 +60,10 @@
             [self setHidden:NO];
         }
         NSMutableDictionary *animDict = [NSMutableDictionary dictionaryWithCapacity:2];
-        [animDict setObject:self forKey:NSViewAnimationTargetKey];
-        [animDict setObject:(hidden ? NSViewAnimationFadeOutEffect : NSViewAnimationFadeInEffect) forKey:NSViewAnimationEffectKey];
+        animDict[NSViewAnimationTargetKey] = self;
+        animDict[NSViewAnimationEffectKey] = (hidden ? NSViewAnimationFadeOutEffect : NSViewAnimationFadeInEffect);
         
-        NSViewAnimation *anim = [[NSViewAnimation alloc] initWithViewAnimations:[NSArray arrayWithObject:animDict]];
+        NSViewAnimation *anim = [[NSViewAnimation alloc] initWithViewAnimations:@[animDict]];
         [anim setDuration:0.5];
         [anim setAnimationBlockingMode:NSAnimationNonblocking];
         [anim setAnimationCurve:NSAnimationEaseInOut];
