@@ -54,11 +54,11 @@ NSString * const GKEditorEndEditingNotification = @"GKEditorEndEditingNotificati
 }
 
 - (void)startEditingAnimated:(BOOL)animated {
-    [[NSNotificationCenter defaultCenter] postNotificationName:GKEditorStartEditingNotification object:[NSNumber numberWithBool:animated]];
+    [[NSNotificationCenter defaultCenter] postNotificationName:GKEditorStartEditingNotification object:@(animated)];
 }
 
 - (void)endEditingAnimated:(BOOL)animated {
-    [[NSNotificationCenter defaultCenter] postNotificationName:GKEditorEndEditingNotification object:[NSNumber numberWithBool:animated]];
+    [[NSNotificationCenter defaultCenter] postNotificationName:GKEditorEndEditingNotification object:@(animated)];
 }
 
 @end

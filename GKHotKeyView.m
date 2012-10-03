@@ -63,7 +63,7 @@ NSString * const GKHotKeyViewChangeNotification = @"GKHotKeyViewChangeNotificati
  * Needed for media key support in the hotkeyview
  */
 - (void)keyDownNotification:(NSNotification*)notif {
-    GKHotKey *key = [notif.userInfo objectForKey:@"key"];
+    GKHotKey *key = (notif.userInfo)[@"key"];
     if ([key isEqual:self.hotkey] && !_hasFocus) {
         self.hotkey = nil;
         return;
@@ -191,9 +191,8 @@ NSString * const GKHotKeyViewChangeNotification = @"GKHotKeyViewChangeNotificati
     NSFont *textFont = [NSFont fontWithName:@"Helvetica" size:fontSize]; //[NSFont systemFontOfSize:fontSize]; //
     NSColor *liveColor = [NSColor colorWithCalibratedHue:0.775 saturation:1 brightness:0.438 alpha:1];
     
-    NSDictionary *attr = [[NSDictionary alloc] initWithObjectsAndKeys: 
-                          textFont, NSFontAttributeName, 
-                          liveColor, NSForegroundColorAttributeName, nil];
+    NSDictionary *attr = @{NSFontAttributeName: textFont, 
+                          NSForegroundColorAttributeName: liveColor};
     
     NSMutableAttributedString *nsStr = [[NSMutableAttributedString alloc] initWithString:hkString attributes:attr];
     CFMutableAttributedStringRef cfStr = (__bridge CFMutableAttributedStringRef)nsStr;
@@ -227,7 +226,7 @@ NSString * const GKHotKeyViewChangeNotification = @"GKHotKeyViewChangeNotificati
         
         int nextBackAdj = _hotkey.isNextKey ? round(fontSize*-.043478) : round(fontSize*-.2174);
         int kernAdjVal = _hotkey.isPlayKey ? round(fontSize*-.30435) : nextBackAdj;
-        CFNumberRef uniCharKernAdj = (__bridge CFNumberRef)[NSNumber numberWithInt:kernAdjVal];
+        CFNumberRef uniCharKernAdj = (__bridge CFNumberRef)@(kernAdjVal);
         CFAttributedStringSetAttribute(cfStr, uniCharRange, kCTKernAttributeName, uniCharKernAdj);
     }
     
@@ -263,7 +262,7 @@ NSString * const GKHotKeyViewChangeNotification = @"GKHotKeyViewChangeNotificati
     for (fontLoop = 1; fontLoop <= 10000; fontLoop++) {
         NSFont *textFont = [NSFont fontWithName:@"Helvetica" size:fontLoop];
         displayFont = [[NSFontManager sharedFontManager] convertWeight:YES ofFont:textFont];
-        [fontAttributes setObject:displayFont forKey:NSFontAttributeName];
+        fontAttributes[NSFontAttributeName] = displayFont;
         stringSize = [stringToSize sizeWithAttributes:fontAttributes];
         
         if (stringSize.width > areaSize.width)
