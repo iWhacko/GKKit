@@ -195,8 +195,8 @@ MAKE_SINGLETON(GKHotKeyCenter, sharedCenter)
                                       tapEventCallback,
                                       (__bridge void *)(self));
 
-        if(_eventPort  == NULL) {
-            NSLog(@"[%s:%d] ERROR: CGEventTapRefort could not be created", __PRETTY_FUNCTION__, __LINE__);
+        if(_eventPort == NULL) {
+            NSLog(@"[%s:%d] ERROR: CGEventTapRef could not be created", __PRETTY_FUNCTION__, __LINE__);
             return nil;
         }
 

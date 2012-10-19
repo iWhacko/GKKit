@@ -49,7 +49,6 @@
         #define GKRect NSRect
         #define GKView NSView
         #define GKWindow NSWindow
-        #define GKSizeMake(w, h) (NSSize){w, h}
 
     #elif IPHONE_ONLY
         #import <QuartzCore/QuartzCore.h>

@@ -54,7 +54,7 @@ NSString * const GKHotKeyViewChangeNotification = @"GKHotKeyViewChangeNotificati
 - (void)windowCloseNotification:(NSNotification*)notif {
     if ([[notif object] isEqual:self.window]) {
         NSLog(@" some straight crap");
-        [self resignFirstResponder];
+        //[self resignFirstResponder];
     }
 }
 
