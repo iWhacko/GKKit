@@ -6,21 +6,21 @@
 //  SOURCE: http://stackoverflow.com/questions/2969110/cgeventtapcreate-breaks-down-mysteriously-with-key-down-events
 //
 //
-//  Permission is hereby granted, free of charge, to any person 
+//  Permission is hereby granted, free of charge, to any person
 //  obtaining a copy of this software and associated documentation
 //  files (the "Software"), to deal in the Software without restriction,
-//  including without limitation the rights to use, copy, modify, 
-//  merge, publish, distribute, sublicense, and/or sell copies of 
-//  the Software, and to permit persons to whom the Software is 
+//  including without limitation the rights to use, copy, modify,
+//  merge, publish, distribute, sublicense, and/or sell copies of
+//  the Software, and to permit persons to whom the Software is
 //  furnished to do so, subject to the following conditions:
 //
-//  The above copyright notice and this permission notice shall be 
+//  The above copyright notice and this permission notice shall be
 //  included in all copies or substantial portions of the Software.
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
-//  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES 
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+//  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
 //  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-//  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR 
-//  ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
+//  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR
+//  ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
 //  CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 //  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
@@ -48,92 +48,94 @@ CGEventRef tapEventCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef 
         CGEventTapEnable([[GKHotKeyCenter sharedCenter] eventPort], TRUE);
         return event;
     }
-    
+
     if (![[GKHotKeyCenter sharedCenter] isEnabled])
         return event;
 
     GKHotKey *key;
     BOOL state;
     BOOL handled = NO;
-    
+
     if (type == kCGEventKeyUp || type == kCGEventKeyDown) {
         CGEventFlags flags = CGEventGetFlags(event);
         int64_t keycode = CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode);
-        
+
         //DLogObject(key);
         //DLogFunc();
-        
+
         BOOL sh = (flags & kCGEventFlagMaskShift) != 0;
         BOOL co = (flags & kCGEventFlagMaskControl) != 0;
         BOOL cm = (flags & kCGEventFlagMaskCommand) != 0;
         BOOL al = (flags & kCGEventFlagMaskAlternate) != 0;
-        
+
         if (!sh && !co && !cm && !al)
             return event;
-        
+
         key = [[GKHotKey alloc] initWithKeyCode:keycode modifierFlags:1];
         key.shiftKey = sh;
         key.controlKey = co;
         key.commandKey = cm;
         key.alternateKey = al;
-        
+
         //key.shiftKey = flags & kCGEventFlagMaskShift;
         //key.controlKey = flags & kCGEventFlagMaskControl;
         //key.commandKey = flags & kCGEventFlagMaskCommand;
         //key.alternateKey = flags & kCGEventFlagMaskAlternate;
         //DLogObject(key);
-        
+
         //DLogBOOL([key isPlayKey]);
         //DLogBOOL([key isNextKey]);
         //DLogBOOL([key hasShiftKey]);
         //DLogBOOL([key hasAlternateKey]);
         //DLogBOOL([key hasControlKey]);
         //DLogBOOL([key hasCommandKey]);
-        
+
         state = type == kCGEventKeyUp;
     } else if(type == NX_SYSDEFINED) {
         NSEvent *nsEvent = [NSEvent eventWithCGEvent:event];
-        
+
         if(nsEvent.subtype != 8)
             return event;
-        
+
         // CGEventGetFlags
         // CGEventKeyboardGetUnicodeString
         // CGEventGetDoubleValueField(event, kCGMouseEventSubtype);
-        
-        int data = [nsEvent data1];
+
+        NSInteger data = [nsEvent data1];
         int keyFlags = (data & 0xFFFF);
         int keyCode = (data & 0xFFFF0000) >> 16;
         int keyState = (keyFlags & 0xFF00) >> 8;
         BOOL keyIsRepeat = (keyFlags & 0x1) > 0;
         
-        if(keyIsRepeat) 
+        NSLog(@" some junk %i", keyCode);
+
+        if(keyIsRepeat)
             return event;
-        
+
         // filter useless events
         if (keyState != NX_KEYSTATE_DOWN && keyState != NX_KEYSTATE_UP) {
             return event;
         }
-        
+
         if (keyCode != NX_KEYTYPE_PLAY && keyCode != NX_KEYTYPE_FAST && keyCode != NX_KEYTYPE_REWIND) {
             return event;
         }
-        
+
         key = [[GKHotKey alloc] initWithKeyCode:keyCode];
         state = keyState == NX_KEYSTATE_UP;
-        
+
     } else
         return event;
-    
-    NSDictionary *dict = [[NSDictionary alloc] initWithObjectsAndKeys:key, @"key", nil];
+
+    NSDictionary *dict = @{@"key": key};
     [NSNtf postNotificationName:KeyboardKeyDownNotification object:(__bridge id)refcon userInfo:dict];
-    
+
     // verify any need for running the handler
     /*NSMutableArray *arr = [[GKHotKeyCenter sharedCenter] keys];
     if (![arr containsObject:key]) {
         return event;
     }*/
-    
+
     // activate all handlers registered
     for (id func in [[GKHotKeyCenter sharedCenter] handlers]) {
         BOOL (^block)(GKHotKey*, int) = func;
@@ -180,21 +182,21 @@ MAKE_SINGLETON(GKHotKeyCenter, sharedCenter)
         self.enabled = YES;
         CFRunLoopRef runLoop;
         CFRunLoopSourceRef runLoopSource;
-        
+
         _keys = [[NSMutableArray alloc] initWithCapacity:0];
         _handlers = [[NSMutableArray alloc] initWithCapacity:1];
 
         _eventPort = CGEventTapCreate(kCGSessionEventTap,
                                       kCGHeadInsertEventTap,
                                       kCGEventTapOptionDefault,
-                                      CGEventMaskBit(NX_SYSDEFINED) 
+                                      CGEventMaskBit(NX_SYSDEFINED)
                                       | CGEventMaskBit(kCGEventKeyDown)
                                       | CGEventMaskBit(kCGEventKeyUp),
                                       tapEventCallback,
                                       (__bridge void *)(self));
-        
-        if(_eventPort  == NULL) {
-            NSLog(@"[%s:%d] ERROCGEventTapRefort could not be created", __PRETTY_FUNCTION__, __LINE__);
+
+        if(_eventPort == NULL) {
+            NSLog(@"[%s:%d] ERROR: CGEventTapRef could not be created", __PRETTY_FUNCTION__, __LINE__);
             return nil;
         }
 
@@ -202,13 +204,14 @@ MAKE_SINGLETON(GKHotKeyCenter, sharedCenter)
 
         if(runLoopSource == NULL) {
             NSLog(@"[%s:%d] ERROR: CFRunLoopSourceRef could not be created", __PRETTY_FUNCTION__, __LINE__);
-//            return nil;   
+            return nil;
         }
 
         runLoop = CFRunLoopGetCurrent();
 
         if(runLoop == NULL) {
             NSLog(@"[%s:%d] ERROR: Could not get the current threads CFRunLoopRef", __PRETTY_FUNCTION__, __LINE__);
+            CFRelease(runLoopSource);
             return nil;
         }
 
@@ -229,7 +232,7 @@ MAKE_SINGLETON(GKHotKeyCenter, sharedCenter)
 - (NSMutableArray*)handlers {
     return _handlers;
 }
-     
+
 - (void)dealloc {
     CFRelease(_eventPort);
 }

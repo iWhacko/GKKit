@@ -237,9 +237,9 @@
 #pragma mark - NSObject String Representations
 
 - (NSString *)description {
-    return [NSString stringWithFormat:@"%@; key:%@(%@); mods:%i%@(%@%@%@%@)", 
+    return [NSString stringWithFormat:@"%@; key:%@(%@); mods:%@(%@%@%@%@)",
             [super description], self.key, self.keyTrigger,
-            [NSNumber numberWithUnsignedInteger:self.modifierFlags],
+            @(self.modifierFlags),
             (self.hasShiftKey ? @"⇧" : @""), 
             (self.hasControlKey ? @"⌃" : @""), 
             (self.hasAlternateKey ? @"⌥" : @""), 
@@ -264,7 +264,7 @@
 #pragma mark - Character Key Manipulation
 
 - (NSNumber*)key {
-    return [NSNumber numberWithUnsignedShort:self.keyCode];
+    return @(self.keyCode);
 }
 
 - (void)setKey:(NSNumber*)keyNum {
@@ -315,7 +315,7 @@
 }
 
 - (NSNumber*)modifierKey {
-    return [NSNumber numberWithUnsignedInteger:self.modifierFlags];
+    return @(self.modifierFlags);
 }
 
 - (void)setModifierKey:(NSNumber*)num {
