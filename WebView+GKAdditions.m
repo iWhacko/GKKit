@@ -21,8 +21,9 @@
     
     //DLogObject(respondingView);
     
-    if([respondingView isMemberOfClass:NSClassFromString(@"WebHTMLView")])
-        respondingView = [(WebHTMLView*)respondingView _hitViewForEvent:fakeClickDown];
+    // needed when sending events to plugins like flash
+    //if([respondingView isMemberOfClass:NSClassFromString(@"WebHTMLView")])
+    //    respondingView = [(WebHTMLView*)respondingView _hitViewForEvent:fakeClickDown];
     
     //DLogObject(respondingView);
     
@@ -36,14 +37,16 @@
     
     NSView *respondingView = [self hitTest:NSMakePoint(300.0, 300.0)];
     
-    //[self dump];
+    [self dump];
     
-    //DLogObject(respondingView);
+    DLogObject(respondingView);
     
+    // needed when sending events to plugins like flash
     if([respondingView isMemberOfClass:NSClassFromString(@"WebHTMLView")])
         respondingView = [(WebHTMLView*)respondingView _hitViewForEvent:fakeClickDown];
         
-    //DLogObject(respondingView);
+    
+    DLogObject(respondingView);
     
     [respondingView keyDown:fakeClickDown];
     [respondingView keyUp:fakeClickUp];
