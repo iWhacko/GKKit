@@ -9,6 +9,7 @@
 #if TARGET_OS_IPHONE || TARGET_OS_SIMULATOR
 
 #import <Foundation/Foundation.h>
+#import "common.h"
 
 @interface GKActivityView : UIView {
 @private
